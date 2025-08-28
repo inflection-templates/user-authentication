@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # Demo Auth Service (simulates external JWT provider)
+  demo-auth:
+    build:
+      context: .
+      dockerfile: Demo/Dockerfile.demo
+    ports:
+      - "5001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - jwt-auth-network
+
+  # Main JWT Auth API
+  jwt-auth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+      - "5443:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - Jwt__Issuer=https://demo-auth-service.com
+      - Jwt__Audience=demo-api-service
+      - Jwt__JwksUrl=http://demo-auth/.well-known/jwks.json
+      - UserService__BaseUrl=http://demo-auth
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/jwt_auth.db
+    volumes:
+      - jwt-auth-data:/app/data
+      - jwt-auth-logs:/app/logs
+    depends_on:
+      demo-auth:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - jwt-auth-network
+
+  # Optional: Redis for distributed caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - jwt-auth-network
+
+  # Optional: PostgreSQL for production database
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=jwt_auth
+      - POSTGRES_USER=jwt_auth_user
+      - POSTGRES_PASSWORD=secure_password_123
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jwt_auth_user -d jwt_auth"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - jwt-auth-network
+
+volumes:
+  jwt-auth-data:
+    driver: local
+  jwt-auth-logs:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  jwt-auth-network:
+    driver: bridge
