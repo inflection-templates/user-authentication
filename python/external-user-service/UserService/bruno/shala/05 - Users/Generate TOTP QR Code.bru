@@ -1,0 +1,18 @@
+meta {
+  name: Generate TOTP QR Code
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/auth/mfa/generate-totp-qrcode
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}

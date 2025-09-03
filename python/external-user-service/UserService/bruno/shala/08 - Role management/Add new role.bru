@@ -1,0 +1,36 @@
+meta {
+  name: Add new role
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/roles
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "name": "My Role",
+    "description": "This is my custom role",
+    "code": "MyRole",
+    "TenantId": "{{TENANT_ID}}"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log(status)
+  if (status == 201) {
+     bru.setEnvVar("ROLE_ID", res.body.data.id);
+  }
+  
+}

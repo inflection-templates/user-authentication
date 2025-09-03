@@ -1,0 +1,35 @@
+meta {
+  name: Upload file - Publicly available
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/file-resources/upload?isPublic=true
+  body: multipartForm
+  auth: none
+}
+
+params:query {
+  isPublic: true
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:multipart-form {
+  File: @file(C:\Users\Admin\Desktop\logo.png)
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log(status)
+  if (status == 201) {
+     bru.setEnvVar("FILE_RESOURCE_ID_PUBLIC", res.body.data.id);
+  }
+  
+}

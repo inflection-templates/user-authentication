@@ -1,0 +1,25 @@
+meta {
+  name: Update another user
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/users/{{ANOTHER_USER_ID}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "phoneNumber": "9999988888",
+    "TenantId": "{{TENANT_ID}}"
+  }
+}

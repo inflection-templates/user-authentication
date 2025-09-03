@@ -1,0 +1,39 @@
+meta {
+  name: Add new tenant
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/tenants
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "name": "My tenant",
+    "description": "This is my custom tenant",
+    "code": "mytenant",
+    "countryCode": "+91",
+    "phoneNumber": "9639639639",
+    "email": "xyz@shala.org",
+    "password": "MyPassword"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log(status)
+  if (status == 201) {
+     bru.setEnvVar("TENANT_ID", res.body.data.id);
+  }
+  
+}
