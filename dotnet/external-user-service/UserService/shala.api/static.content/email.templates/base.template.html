@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{Title}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1A1A1A; /* Dark background */
+      color: #FFFFFF; /* White text */
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #FFFFFF; /* Light section for contrast */
+      border-radius: 8px;
+    }
+    .header {
+      text-align: center;
+      background-color: #272727; /* Orange header */
+      padding-top: 8px;
+      padding-bottom: 5px;
+      padding-left: 20px;
+      padding-right: 20px;
+      border-radius: 8px;
+    }
+    .header img {
+      width: 60px;
+      height: auto;
+    }
+    .content {
+      padding: 20px;
+      color: #333333; /* Darker text for readability */
+    }
+    .content h1 {
+      color: #FF7F00; /* Orange title */
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #272727; /* Match body dark background */
+      color: #FFFFFF;
+      border-radius: 8px;
+    }
+    .footer a {
+      color: #FF7F00; /* Orange links */
+      text-decoration: none;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #FF7F00; /* Orange button */
+      color: #FFFFFF;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .small-text {
+      font-size: 12px;
+      color: #CCCCCC;
+    }
+    .api-key-box {
+      background-color: #F7F7F7;
+      padding: 15px;
+      border: 1px solid #DDDDDD;
+      color: #333333;
+      word-break: break-all;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header with Logo -->
+    <div class="header">
+      <img
+        src="{{PlatformLogo}}"
+        alt="{{Platform}}">
+      <h3>{{Platform}}</h3>
+    </div>
+
+    <!-- Password Reset Content -->
+    <div class="content">
+    {{EmailContent}}
+    <p>Thanks,<br>{{Platform}} Team</p>
+    </div>
+
+    <!-- Footer with Social Links -->
+    <div class="footer">
+        <p>You're receiving this email because you signed up at {{Platform}}.</p>
+
+        <!-- Social Media Links -->
+        <div class="social-icons">
+          <a href="{{SocialMediaLink_Facebook}}"><img src="{{SocialMediaIcon_Facebook}}" alt="Facebook"></a>
+          <a href="{{SocialMediaLink_Twitter}}"><img src="{{SocialMediaIcon_Twitter}}" alt="Twitter"></a>
+          <a href="{{SocialMediaLink_LinkedIn}}"><img src="{{SocialMediaIcon_LinkedIn}}" alt="LinkedIn"></a>
+          <a href="{{SocialMediaLink_Instagram}}"><img src="{{SocialMediaIcon_Instagram}}" alt="Instagram"></a>
+        </div>
+
+        <!-- Unsubscribe and Other Footer Details -->
+        <p class="small-text"><a href="{{Unsubscribe}}">Unsubscribe</a> | <a href="{{PrivacyPolicy}}">Privacy Policy</a> | <a href="{{TermsAndConditions}}">Terms and Conditions</a></p>
+        <p class="small-text"><a href="{{ContactUs}}">Contact Us</a> | <a href="{{Faq}}">FAQ</a> | Support: {{SupportEmail}} | {{SupportPhone}}</p>
+        <p class="small-text">{{CompanyAddress}}</p>
+        <p class="small-text"><span>© {{CurrentYear}}</span> <a href="{{Website}}">{{Platform}}</a>, All rights reserved.</p>
+    </div>
+  </div>
+
+</body>
+</html>

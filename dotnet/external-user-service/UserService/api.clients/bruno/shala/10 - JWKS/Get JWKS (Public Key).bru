@@ -1,0 +1,44 @@
+meta {
+  name: Get JWKS (Public Key)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/.well-known/jwks.json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("JWKS Response Status:", status);
+  
+  if (status == 200) {
+    console.log("JWKS Response:", res.body);
+    
+    // Extract key information for debugging
+    if (res.body.keys && res.body.keys.length > 0) {
+      const key = res.body.keys[0];
+      console.log("Key ID:", key.kid);
+      console.log("Algorithm:", key.alg);
+      console.log("Key Type:", key.kty);
+      console.log("Use:", key.use);
+      
+      // Store key information in environment variables
+      bru.setEnvVar("JWKS_KEY_ID", key.kid);
+      bru.setEnvVar("JWKS_ALGORITHM", key.alg);
+      bru.setEnvVar("JWKS_KEY_TYPE", key.kty);
+    }
+    
+    // Store complete JWKS data in environment
+    bru.setEnvVar("JWKS_DATA", JSON.stringify(res.body));
+    
+    console.log("✅ JWKS retrieved successfully");
+  } else {
+    console.error("❌ Failed to get JWKS:", res.body);
+  }
+}

@@ -1,0 +1,10 @@
+{
+    "FirstName"  : "system",
+    "LastName"   : "administrator",
+    "CountryCode": "+91",
+    "PhoneNumber": "1000000000",
+    "Email"      : "admin@shala-education.com",
+    "UserName"   : "admin",
+    "Password"   : "<password>",
+    "RoleName"   : "Admin"
+}

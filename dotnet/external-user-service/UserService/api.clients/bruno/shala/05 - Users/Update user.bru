@@ -1,0 +1,28 @@
+meta {
+  name: Update user
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/users/{{USER_ID}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "firstName": "kiran",
+    "lastName": "kharade",
+    "email": "kk1@gmail.com",
+    "countryCode": "+91",
+    "phoneNumber": "9877899877"
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "parallelizeTestCollections": false,  // Disable parallel test collections
+    "diagnosticMessages": true,           // Enable diagnostic messages (useful for debugging)
+    "longRunningTestSeconds": 300,        // Test considered long-running after 30 seconds
+    "internalDiagnosticMessages": false,  // Enable internal diagnostic messages
+    "methodDisplay": "classAndMethod",    // Display both class and method in test output
+    "failSkips": false                    // Treat skipped tests as failed
+  }

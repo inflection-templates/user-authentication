@@ -1,0 +1,39 @@
+meta {
+  name: Add another user
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "firstName": "Kondiba",
+    "lastName": "Kharade",
+    "userName": "kondia123",
+    "email": "kondiba@gmail.com",
+    "countryCode": "+91",
+    "phoneNumber": "9970155165",
+    "password": "Kharade@123",
+    "TenantId": "{{TENANT_ID}}"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log(status)
+  if (status == 201) {
+     bru.setEnvVar("ANOTHER_USER_ID", res.body.data.id);
+  }
+  
+}

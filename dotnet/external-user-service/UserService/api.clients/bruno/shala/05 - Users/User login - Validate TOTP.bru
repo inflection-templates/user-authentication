@@ -1,0 +1,35 @@
+meta {
+  name: User login - Validate TOTP
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/mfa/validate-totp
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "userId": "{{USER_ID}}",
+    "sessionId": "{{SESSION_ID}}",
+    "totpCode": "971565"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log(status)
+  if (status == 200) {
+    bru.setEnvVar("USER_ACCESS_TOKEN", res.body.data.token);
+    bru.setEnvVar("USER_REFRESH_TOKEN", res.body.data.refreshToken);
+  }
+  
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Search roles
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/roles/search?name=adm
+  body: json
+  auth: none
+}
+
+params:query {
+  name: adm
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}

@@ -1,0 +1,29 @@
+{
+    "Platform": "Shala",
+    "Version": "1.0.0",
+    "Website": "https://www.shala-education.com",
+    "SupportEmail": "dev@inflectionzone.com",
+    "SupportPhone": "+91-1234567890",
+    "CompanyAddress": "Shala Education Pvt. Ltd., 123, Shala Marg, Shala Nagar, Shala City, Shala State, India - 123456",
+    "PlatformLogo": "https://inflectionzone.com/wp-content/uploads/2022/03/FullColor_IconOnly_1024x1024_72dpi_transparent.png",
+    "SocialMediaLinks": {
+        "Github": "https://www.github.com/shala-education",
+        "Facebook": "https://www.facebook.com/shala-education",
+        "Twitter": "https://www.twitter.com/shala-education",
+        "LinkedIn": "https://www.linkedin.com/company/shala-education",
+        "Instagram": "https://www.instagram.com/shala-education"
+    },
+    "SocialMediaIcons": {
+        "Github": "https://www.shala-education.com/assets/images/github.png",
+        "Facebook": "https://www.shala-education.com/assets/images/facebook.png",
+        "Twitter": "https://www.shala-education.com/assets/images/twitter.png",
+        "LinkedIn": "https://www.shala-education.com/assets/images/linkedin.png",
+        "Instagram": "https://www.shala-education.com/assets/images/instagram.png"
+    },
+    "AboutUs": "Shala is an online learning platform that offers a wide range of courses for students of all ages. Our mission is to make quality education accessible to everyone, everywhere. We believe that learning should be fun, engaging, and interactive. That's why we've created a platform that is easy to use and full of exciting features. Whether you're a student looking to improve your grades or a teacher looking to share your knowledge with the world, Shala has something for you. Join us today and start learning!",
+    "PrivacyPolicy": "https://www.shala-education.com/privacy-policy",
+    "TermsOfService": "https://www.shala-education.com/terms-of-service",
+    "Unsubscribe": "https://www.shala-education.com/unsubscribe",
+    "ContactUs": "https://www.shala-education.com/contact-us",
+    "Faq": "https://www.shala-education.com/faq"
+}
