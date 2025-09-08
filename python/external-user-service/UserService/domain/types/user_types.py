@@ -52,9 +52,10 @@ class User(BaseModel):
     tenant_id: Optional[UUID] = None
     username: Optional[str] = None
     email: EmailStr
-    phone: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    country_code: Optional[str] = Field(None, alias="countryCode")
+    phone_number: Optional[str] = Field(None, alias="phoneNumber")
+    first_name: Optional[str] = Field(None, alias="firstName")
+    last_name: Optional[str] = Field(None, alias="lastName")
     gender: Optional[GenderType] = None
     birth_date: Optional[date] = None
     profile_image_url: Optional[str] = None
@@ -68,6 +69,20 @@ class User(BaseModel):
     
     class Config:
         from_attributes = True
+        allow_population_by_field_name = True
+    
+    def parse_phone_number(self, combined_phone: str):
+        """Parse the combined phone number into country code and phone number"""
+        if combined_phone and combined_phone.startswith('+'):
+            # Extract country code (typically 2-4 digits after +)
+            for i in range(2, 5):  # Check +XX, +XXX, +XXXX patterns
+                if i < len(combined_phone):
+                    potential_code = combined_phone[:i+1]
+                    remaining = combined_phone[i+1:]
+                    if len(remaining) >= 10:  # Minimum phone number length
+                        self.country_code = potential_code
+                        self.phone_number = remaining
+                        break
 
 
 class UserLoginSession(BaseModel):
@@ -129,6 +144,17 @@ class UserPasswordLoginModel(BaseModel):
     remember_me: bool = False
 
 
+class UserPhoneLoginModel(BaseModel):
+    """User phone login request model"""
+    country_code: str = Field(..., pattern=r"^\+\d{1,4}$", alias="countryCode")
+    phone_number: str = Field(..., min_length=10, max_length=15, alias="phoneNumber")
+    password: str = Field(..., min_length=1)
+    remember_me: bool = False
+    
+    class Config:
+        allow_population_by_field_name = True
+
+
 class UserOtpLoginModel(BaseModel):
     """User OTP login request model"""
     email: EmailStr
@@ -169,12 +195,24 @@ class UserRegistrationModel(BaseModel):
     """User registration request model"""
     email: EmailStr
     password: str = Field(..., min_length=8)
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: Optional[str] = Field(None, alias="firstName")
+    last_name: Optional[str] = Field(None, alias="lastName")
     phone: Optional[str] = None
-    username: Optional[str] = None
+    country_code: Optional[str] = Field(None, alias="countryCode")
+    phone_number: Optional[str] = Field(None, alias="phoneNumber")
+    username: Optional[str] = Field(None, alias="userName")
     gender: Optional[GenderType] = None
     birth_date: Optional[date] = None
+    tenant_id: Optional[str] = Field(None, alias="TenantId")
+    
+    class Config:
+        allow_population_by_field_name = True
+        
+    def get_full_phone(self) -> Optional[str]:
+        """Get full phone number combining country code and phone number"""
+        if self.country_code and self.phone_number:
+            return f"{self.country_code}{self.phone_number}"
+        return self.phone
 
 
 class UserUpdateModel(BaseModel):
@@ -191,12 +229,19 @@ class UserUpdateModel(BaseModel):
 
 class LoginResponseModel(BaseModel):
     """Login response model"""
-    access_token: str
-    refresh_token: str
-    token_type: str = "Bearer"
-    expires_in: int
-    user: User
-    session_id: str
+    data: dict
+    
+    @classmethod
+    def create(cls, access_token: str, refresh_token: str, expires_in: int, user: User, session_id: str, token_type: str = "Bearer"):
+        data_obj = {
+            "token": access_token,
+            "refreshToken": refresh_token,
+            "tokenType": token_type,
+            "expiresIn": expires_in,
+            "user": user,
+            "sessionId": session_id
+        }
+        return cls(data=data_obj)
 
 
 class TokenResponseModel(BaseModel):
@@ -212,9 +257,10 @@ class UserResponseModel(BaseModel):
     id: UUID
     email: str
     username: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone: Optional[str] = None
+    first_name: Optional[str] = Field(None, alias="firstName")
+    last_name: Optional[str] = Field(None, alias="lastName")
+    country_code: Optional[str] = Field(None, alias="countryCode")
+    phone_number: Optional[str] = Field(None, alias="phoneNumber")
     gender: Optional[GenderType] = None
     birth_date: Optional[date] = None
     profile_image_url: Optional[str] = None
@@ -227,6 +273,7 @@ class UserResponseModel(BaseModel):
     
     class Config:
         from_attributes = True
+        allow_population_by_field_name = True
 
 
 class PaginatedResponse(BaseModel):
@@ -238,6 +285,16 @@ class PaginatedResponse(BaseModel):
     total_pages: int
     has_next: bool
     has_previous: bool
+
+
+class UserRegistrationResponseModel(BaseModel):
+    """User registration response model (without tokens)"""
+    success: bool = True
+    message: str = "User registered successfully"
+    user: User
+    
+    class Config:
+        from_attributes = True
 
 
 class ApiResponse(BaseModel):

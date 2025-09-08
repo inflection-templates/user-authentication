@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db_context import get_db_session
 from domain.types.user_types import (
-    UserPasswordLoginModel, UserOtpLoginModel, UserSendOtpModel,
+    UserPasswordLoginModel, UserPhoneLoginModel, UserOtpLoginModel, UserSendOtpModel,
     UserResetPasswordSendLinkModel, UserResetPasswordModel,
     UserChangePasswordModel, UserRefreshTokenModel, UserRegistrationModel,
     LoginResponseModel, TokenResponseModel, ApiResponse
@@ -47,6 +47,17 @@ async def login_with_password(
     Authenticate user with email and password
     """
     return await handler.login_with_password(login_data)
+
+
+@auth_router.post("/login-with-password", response_model=LoginResponseModel)
+async def login_with_phone_password(
+    login_data: UserPhoneLoginModel,
+    handler: AuthHandler = Depends(get_auth_handler)
+):
+    """
+    Authenticate user with phone number and password
+    """
+    return await handler.login_with_phone_password(login_data)
 
 
 @auth_router.post("/login/otp", response_model=LoginResponseModel)

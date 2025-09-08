@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db_context import get_db_session
 from domain.types.user_types import (
-    UserPasswordLoginModel, UserOtpLoginModel, UserSendOtpModel,
+    UserPasswordLoginModel, UserPhoneLoginModel, UserOtpLoginModel, UserSendOtpModel,
     UserResetPasswordSendLinkModel, UserResetPasswordModel,
     UserChangePasswordModel, UserRefreshTokenModel, UserRegistrationModel,
     LoginResponseModel, TokenResponseModel, ApiResponse
@@ -52,7 +52,7 @@ class AuthHandler:
             
             logger.info(f"User {user.email} logged in successfully")
             
-            return LoginResponseModel(
+            return LoginResponseModel.create(
                 access_token=access_token,
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
@@ -67,6 +67,49 @@ class AuthHandler:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal server error during login"
+            )
+
+    async def login_with_phone_password(self, login_data: UserPhoneLoginModel) -> LoginResponseModel:
+        """
+        Authenticate user with phone number and password
+        """
+        try:
+            result = await self.auth_service.authenticate_with_phone_password(
+                login_data.country_code,
+                login_data.phone_number,
+                login_data.password,
+                login_data.remember_me
+            )
+            
+            if not result:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid phone number or password"
+                )
+            
+            user, session = result
+            
+            # Generate tokens
+            access_token = self.jwt_service.generate_token(user, session.session_id)
+            refresh_token = self.jwt_service.generate_refresh_token(user, session.session_id)
+            
+            logger.info(f"User with phone {login_data.country_code}{login_data.phone_number} logged in successfully")
+            
+            return LoginResponseModel.create(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
+                user=user,
+                session_id=str(session.session_id)
+            )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Phone login error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal server error during phone login"
             )
 
     async def login_with_otp(self, login_data: UserOtpLoginModel) -> LoginResponseModel:
@@ -94,7 +137,7 @@ class AuthHandler:
             
             logger.info(f"User {user.email} logged in with OTP successfully")
             
-            return LoginResponseModel(
+            return LoginResponseModel.create(
                 access_token=access_token,
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
@@ -160,7 +203,7 @@ class AuthHandler:
             
             logger.info(f"User {user.email} registered successfully")
             
-            return LoginResponseModel(
+            return LoginResponseModel.create(
                 access_token=access_token,
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,

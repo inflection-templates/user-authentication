@@ -8,7 +8,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.types.user_types import (
-    UserRegistrationModel, LoginResponseModel
+    UserRegistrationModel, LoginResponseModel, UserRegistrationResponseModel
 )
 from services.user_auth_service import UserAuthService
 from services.jwt_token_service import JwtTokenService
@@ -41,12 +41,43 @@ class UserHandler:
             
             logger.info(f"User {user.email} registered successfully via /users endpoint")
             
-            return LoginResponseModel(
+            return LoginResponseModel.create(
                 access_token=access_token,
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
                 user=user,
                 session_id=str(session.session_id)
+            )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Registration error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal server error during registration"
+            )
+
+    async def register_user_only(self, registration_data: UserRegistrationModel) -> UserRegistrationResponseModel:
+        """
+        Register a new user without creating session or tokens
+        """
+        try:
+            # Use the auth service to register user but without creating session
+            user = await self.auth_service.register_user_without_session(registration_data)
+            
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="User registration failed"
+                )
+            
+            logger.info(f"User {user.email} registered successfully (no session created)")
+            
+            return UserRegistrationResponseModel(
+                success=True,
+                message="User registered successfully. Please login to get access tokens.",
+                user=user
             )
             
         except HTTPException:

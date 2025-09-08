@@ -97,6 +97,80 @@ class UserAuthService:
             logger.error(f"Authentication error for {email}: {e}")
             return None
     
+    async def authenticate_with_phone_password(
+        self, 
+        country_code: str,
+        phone_number: str,
+        password: str, 
+        remember_me: bool = False
+    ) -> Optional[Tuple[User, UserLoginSession]]:
+        """Authenticate user with phone number and password"""
+        try:
+            # Combine country code and phone number
+            full_phone = f"{country_code}{phone_number}"
+            
+            # Get user by phone
+            user_result = await self.db_session.execute(
+                select(UserEntity).where(UserEntity.phone == full_phone)
+            )
+            user_entity = user_result.scalar_one_or_none()
+            
+            if not user_entity or not user_entity.is_active:
+                logger.warning(f"Phone authentication failed: user not found or inactive for {full_phone}")
+                return None
+            
+            # Get auth profile
+            auth_result = await self.db_session.execute(
+                select(UserAuthProfileEntity).where(
+                    and_(
+                        UserAuthProfileEntity.user_id == user_entity.id,
+                        UserAuthProfileEntity.login_type == UserLoginType.PASSWORD
+                    )
+                )
+            )
+            auth_profile = auth_result.scalar_one_or_none()
+            
+            if not auth_profile or auth_profile.is_locked:
+                logger.warning(f"Phone authentication failed: auth profile not found or locked for {full_phone}")
+                return None
+            
+            # Verify password
+            if not self._verify_password(password, auth_profile.password_hash):
+                # Increment failed attempts
+                auth_profile.failed_login_attempts += 1
+                if auth_profile.failed_login_attempts >= 5:
+                    auth_profile.is_locked = True
+                    auth_profile.locked_until = datetime.utcnow() + timedelta(hours=1)
+                
+                await self.db_session.commit()
+                logger.warning(f"Phone authentication failed: invalid password for {full_phone}")
+                return None
+            
+            # Reset failed attempts on successful login
+            auth_profile.failed_login_attempts = 0
+            auth_profile.is_locked = False
+            auth_profile.locked_until = None
+            
+            # Update last login
+            user_entity.last_login = datetime.utcnow()
+            user_entity.updated_at = datetime.utcnow()
+            
+            # Create login session
+            session = await self._create_login_session(user_entity.id, remember_me)
+            
+            await self.db_session.commit()
+            
+            # Convert to domain models
+            user = self._map_user_entity_to_domain(user_entity)
+            session_domain = self._map_session_entity_to_domain(session)
+            
+            logger.info(f"User with phone {full_phone} authenticated successfully")
+            return user, session_domain
+            
+        except Exception as e:
+            logger.error(f"Phone authentication error for {country_code}{phone_number}: {e}")
+            return None
+    
     async def authenticate_with_otp(
         self,
         email: str,
@@ -163,7 +237,7 @@ class UserAuthService:
                 username=registration_data.username,
                 first_name=registration_data.first_name,
                 last_name=registration_data.last_name,
-                phone=registration_data.phone,
+                phone=registration_data.get_full_phone(),
                 gender=registration_data.gender,
                 birth_date=registration_data.birth_date,
                 default_timezone="UTC",
@@ -219,6 +293,87 @@ class UserAuthService:
             
             logger.info(f"User {registration_data.email} registered successfully")
             return user, session_domain
+            
+        except Exception as e:
+            logger.error(f"User registration error for {registration_data.email}: {e}")
+            await self.db_session.rollback()
+            return None
+    
+    async def register_user_without_session(
+        self, 
+        registration_data: UserRegistrationModel
+    ) -> Optional[User]:
+        """Register a new user without creating a login session"""
+        try:
+            # Check if user already exists
+            existing_result = await self.db_session.execute(
+                select(UserEntity).where(UserEntity.email == registration_data.email)
+            )
+            if existing_result.scalar_one_or_none():
+                logger.warning(f"User registration failed: {registration_data.email} already exists")
+                return None
+            
+            # Create user entity
+            user_entity = UserEntity(
+                id=str(uuid4()),
+                email=registration_data.email,
+                username=registration_data.username,
+                first_name=registration_data.first_name,
+                last_name=registration_data.last_name,
+                phone=registration_data.get_full_phone(),
+                gender=registration_data.gender,
+                birth_date=registration_data.birth_date,
+                default_timezone="UTC",
+                is_active=True,
+                status=UserStatus.ACTIVE,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            
+            self.db_session.add(user_entity)
+            await self.db_session.flush()  # Get the user ID
+            
+            # Create auth profile
+            password_hash = self._hash_password(registration_data.password)
+            auth_profile = UserAuthProfileEntity(
+                id=str(uuid4()),
+                user_id=user_entity.id,
+                login_type=UserLoginType.PASSWORD,
+                password_hash=password_hash,
+                last_password_change=datetime.utcnow(),
+                failed_login_attempts=0,
+                is_locked=False,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            
+            self.db_session.add(auth_profile)
+            
+            # Assign default user role
+            user_role_result = await self.db_session.execute(
+                select(RoleEntity).where(RoleEntity.name == "User")
+            )
+            user_role = user_role_result.scalar_one_or_none()
+            
+            if user_role:
+                user_role_assignment = UserRoleEntity(
+                    id=str(uuid4()),
+                    user_id=user_entity.id,
+                    role_id=user_role.id,
+                    assigned_at=datetime.utcnow(),
+                    is_active=True
+                )
+                self.db_session.add(user_role_assignment)
+            
+            # DO NOT create login session - this is the key difference
+            
+            await self.db_session.commit()
+            
+            # Convert to domain model
+            user = self._map_user_entity_to_domain(user_entity)
+            
+            logger.info(f"User {registration_data.email} registered successfully (no session created)")
+            return user
             
         except Exception as e:
             logger.error(f"User registration error for {registration_data.email}: {e}")
@@ -458,12 +613,11 @@ class UserAuthService:
     
     def _map_user_entity_to_domain(self, entity: UserEntity) -> User:
         """Map user entity to domain model"""
-        return User(
+        user = User(
             id=entity.id,
             tenant_id=entity.tenant_id,
             username=entity.username,
             email=entity.email,
-            phone=entity.phone,
             first_name=entity.first_name,
             last_name=entity.last_name,
             gender=entity.gender,
@@ -477,6 +631,12 @@ class UserAuthService:
             updated_at=entity.updated_at,
             last_login=entity.last_login
         )
+        
+        # Parse phone number into separate country code and phone number
+        if entity.phone:
+            user.parse_phone_number(entity.phone)
+        
+        return user
     
     def _map_session_entity_to_domain(self, entity: UserLoginSessionEntity) -> UserLoginSession:
         """Map session entity to domain model"""

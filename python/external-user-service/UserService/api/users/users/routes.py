@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db_context import get_db_session
 from domain.types.user_types import (
-    UserRegistrationModel, LoginResponseModel
+    UserRegistrationModel, LoginResponseModel, UserRegistrationResponseModel
 )
 from services.user_auth_service import UserAuthService
 from services.jwt_token_service import JwtTokenService
@@ -42,15 +42,15 @@ def get_current_user_id(
     claims = jwt_service.validate_token(credentials.credentials)
     return claims.get("sub")
 
-@users_router.post("", response_model=LoginResponseModel)
+@users_router.post("", response_model=UserRegistrationResponseModel)
 async def register_user(
     registration_data: UserRegistrationModel,
     handler: UserHandler = Depends(get_user_handler)
 ):
     """
-    Register a new user (alternative endpoint for compatibility)
+    Register a new user (without creating session or tokens)
     """
-    return await handler.register_user(registration_data)
+    return await handler.register_user_only(registration_data)
 
 @users_router.get("/me")
 async def get_current_user(
