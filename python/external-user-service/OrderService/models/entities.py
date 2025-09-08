@@ -5,6 +5,7 @@ Equivalent to the .NET OrderService.Models.Entities
 
 from datetime import datetime
 from typing import List, Optional
+import uuid
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.types import DECIMAL
 from sqlalchemy.ext.declarative import declarative_base
@@ -17,7 +18,7 @@ class Customer(Base):
     """Customer entity"""
     __tablename__ = "customers"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
@@ -54,7 +55,7 @@ class Order(Base):
     __tablename__ = "orders"
     
     id = Column(Integer, primary_key=True, index=True)
-    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    customer_id = Column(String(36), ForeignKey("customers.id"), nullable=False)
     order_number = Column(String(50), nullable=False, unique=True, index=True)
     order_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     status = Column(String(50), default="Pending", nullable=False)  # Pending, Processing, Shipped, Delivered, Cancelled

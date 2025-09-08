@@ -5,14 +5,17 @@ Equivalent to the .NET OrderService.Models.DTOs
 
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import List, Optional, Generic, TypeVar
+from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, validator
+
+T = TypeVar('T')
 
 
 # Customer DTOs
 class CustomerDto(BaseModel):
     """Customer data transfer object"""
-    id: int
+    id: UUID
     first_name: str
     last_name: str
     email: str
@@ -113,7 +116,7 @@ class CreateOrderItemDto(BaseModel):
 class OrderDto(BaseModel):
     """Order data transfer object"""
     id: int
-    customer_id: int
+    customer_id: UUID
     order_number: str
     order_date: datetime
     status: str
@@ -134,7 +137,7 @@ class OrderDto(BaseModel):
 
 class CreateOrderDto(BaseModel):
     """Create order data transfer object"""
-    customer_id: int = Field(..., gt=0)
+    customer_id: UUID
     notes: Optional[str] = Field(None, max_length=500)
     shipping_address: Optional[str] = Field(None, max_length=200)
     order_items: List[CreateOrderItemDto] = Field(..., min_items=1)
@@ -152,3 +155,59 @@ class UpdateOrderDto(BaseModel):
         if v not in valid_statuses:
             raise ValueError(f'Status must be one of: {", ".join(valid_statuses)}')
         return v
+
+
+# Standardized Response Models
+class StandardResponse(BaseModel, Generic[T]):
+    """Base standardized response model"""
+    success: bool = True
+    message: str
+    data: Optional[T] = None
+
+
+class SuccessResponse(BaseModel):
+    """Simple success response model"""
+    success: bool = True
+    message: str
+
+
+class CustomerResponse(BaseModel):
+    """Customer response model"""
+    success: bool = True
+    message: str
+    customer: CustomerDto
+
+
+class CustomersListResponse(BaseModel):
+    """Customers list response model"""
+    success: bool = True
+    message: str
+    customers: List[CustomerDto]
+
+
+class ProductResponse(BaseModel):
+    """Product response model"""
+    success: bool = True
+    message: str
+    product: ProductDto
+
+
+class ProductsListResponse(BaseModel):
+    """Products list response model"""
+    success: bool = True
+    message: str
+    products: List[ProductDto]
+
+
+class OrderResponse(BaseModel):
+    """Order response model"""
+    success: bool = True
+    message: str
+    order: OrderDto
+
+
+class OrdersListResponse(BaseModel):
+    """Orders list response model"""
+    success: bool = True
+    message: str
+    orders: List[OrderDto]

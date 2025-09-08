@@ -111,7 +111,6 @@ async def seed_data():
         # Seed customers
         customers = [
             Customer(
-                id=1,
                 first_name="John",
                 last_name="Doe",
                 email="john.doe@example.com",
@@ -121,7 +120,6 @@ async def seed_data():
                 updated_at=datetime.utcnow()
             ),
             Customer(
-                id=2,
                 first_name="Jane",
                 last_name="Smith",
                 email="jane.smith@example.com",

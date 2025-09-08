@@ -6,6 +6,7 @@ Equivalent to the .NET OrderService.Services.CustomerService
 import logging
 from datetime import datetime
 from typing import List, Optional
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
@@ -30,7 +31,7 @@ class CustomerService:
         customers = result.scalars().all()
         return [self._map_to_dto(customer) for customer in customers]
     
-    async def get_customer_by_id(self, customer_id: int) -> Optional[CustomerDto]:
+    async def get_customer_by_id(self, customer_id: UUID) -> Optional[CustomerDto]:
         """Get customer by ID"""
         result = await self.db_session.execute(
             select(Customer).where(Customer.id == customer_id)
@@ -67,7 +68,7 @@ class CustomerService:
         logger.info(f"Customer created with ID: {customer.id}, Email: {customer.email}")
         return self._map_to_dto(customer)
     
-    async def update_customer(self, customer_id: int, update_dto: UpdateCustomerDto) -> Optional[CustomerDto]:
+    async def update_customer(self, customer_id: UUID, update_dto: UpdateCustomerDto) -> Optional[CustomerDto]:
         """Update an existing customer"""
         # Get existing customer
         result = await self.db_session.execute(
@@ -104,7 +105,7 @@ class CustomerService:
         logger.info(f"Customer updated with ID: {customer_id}")
         return self._map_to_dto(customer)
     
-    async def delete_customer(self, customer_id: int) -> bool:
+    async def delete_customer(self, customer_id: UUID) -> bool:
         """Delete a customer"""
         # Get customer
         result = await self.db_session.execute(

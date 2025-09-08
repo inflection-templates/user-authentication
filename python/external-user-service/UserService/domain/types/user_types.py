@@ -229,6 +229,8 @@ class UserUpdateModel(BaseModel):
 
 class LoginResponseModel(BaseModel):
     """Login response model"""
+    success: bool = True
+    message: str = "Login successful"
     data: dict
     
     @classmethod
@@ -241,7 +243,11 @@ class LoginResponseModel(BaseModel):
             "user": user,
             "sessionId": session_id
         }
-        return cls(data=data_obj)
+        return cls(
+            success=True,
+            message="Login successful",
+            data=data_obj
+        )
 
 
 class TokenResponseModel(BaseModel):
