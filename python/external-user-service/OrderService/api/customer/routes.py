@@ -43,7 +43,7 @@ async def get_customer_by_id(
     return await get_customer_by_id_handler(id, db_session)
 
 
-@router.post("", response_model=CustomerResponse, status_code=201)
+@router.post("", response_model=CustomerResponse)
 async def create_customer(
     customer_data: CreateCustomerDto,
     current_user=Depends(verify_token),
@@ -64,7 +64,7 @@ async def update_customer(
     return await update_customer_handler(id, customer_data, db_session)
 
 
-@router.delete("/{id}", response_model=SuccessResponse, status_code=200)
+@router.delete("/{id}", response_model=SuccessResponse)
 async def delete_customer(
     id: UUID,
     current_user=Depends(verify_token),

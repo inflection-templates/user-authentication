@@ -162,6 +162,7 @@ class StandardResponse(BaseModel, Generic[T]):
     """Base standardized response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
     data: Optional[T] = None
 
 
@@ -169,12 +170,14 @@ class SuccessResponse(BaseModel):
     """Simple success response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
 
 
 class CustomerResponse(BaseModel):
     """Customer response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
     customer: CustomerDto
 
 
@@ -182,6 +185,7 @@ class CustomersListResponse(BaseModel):
     """Customers list response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
     customers: List[CustomerDto]
 
 
@@ -189,6 +193,7 @@ class ProductResponse(BaseModel):
     """Product response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
     product: ProductDto
 
 
@@ -196,6 +201,7 @@ class ProductsListResponse(BaseModel):
     """Products list response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
     products: List[ProductDto]
 
 
@@ -203,6 +209,7 @@ class OrderResponse(BaseModel):
     """Order response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
     order: OrderDto
 
 
@@ -210,4 +217,5 @@ class OrdersListResponse(BaseModel):
     """Orders list response model"""
     success: bool = True
     message: str
+    httpcode: int = 200
     orders: List[OrderDto]

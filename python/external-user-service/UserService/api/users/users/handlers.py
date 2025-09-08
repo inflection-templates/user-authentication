@@ -46,7 +46,8 @@ class UserHandler:
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
                 user=user,
-                session_id=str(session.session_id)
+                session_id=str(session.session_id),
+                httpcode=201
             )
             
         except HTTPException:
@@ -76,7 +77,7 @@ class UserHandler:
             
             return UserRegistrationResponseModel(
                 success=True,
-                message="User registered successfully. Please login to get access tokens.",
+                message="User registered successfully",
                 user=user
             )
             

@@ -23,6 +23,7 @@ async def get_all_customers_handler(
     return CustomersListResponse(
         success=True,
         message="Customers retrieved successfully",
+        httpcode=200,
         customers=customers
     )
 
@@ -39,6 +40,7 @@ async def get_customer_by_id_handler(
     return CustomerResponse(
         success=True,
         message="Customer retrieved successfully",
+        httpcode=200,
         customer=customer
     )
 
@@ -54,6 +56,7 @@ async def create_customer_handler(
         return CustomerResponse(
             success=True,
             message="Customer created successfully",
+            httpcode=201,
             customer=customer
         )
     except ValueError as e:
@@ -74,6 +77,7 @@ async def update_customer_handler(
         return CustomerResponse(
             success=True,
             message="Customer updated successfully",
+            httpcode=200,
             customer=customer
         )
     except ValueError as e:
@@ -92,7 +96,8 @@ async def delete_customer_handler(
             raise HTTPException(status_code=404, detail="Customer not found")
         return SuccessResponse(
             success=True,
-            message="Customer deleted successfully"
+            message="Customer deleted successfully",
+            httpcode=204
         )
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))

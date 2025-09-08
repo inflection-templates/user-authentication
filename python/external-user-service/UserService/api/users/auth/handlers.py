@@ -57,7 +57,8 @@ class AuthHandler:
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
                 user=user,
-                session_id=str(session.session_id)
+                session_id=str(session.session_id),
+                httpcode=200
             )
             
         except HTTPException:
@@ -100,7 +101,8 @@ class AuthHandler:
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
                 user=user,
-                session_id=str(session.session_id)
+                session_id=str(session.session_id),
+                httpcode=200
             )
             
         except HTTPException:
@@ -142,7 +144,8 @@ class AuthHandler:
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
                 user=user,
-                session_id=str(session.session_id)
+                session_id=str(session.session_id),
+                httpcode=200
             )
             
         except HTTPException:
@@ -165,6 +168,7 @@ class AuthHandler:
                 return ApiResponse(
                     success=True,
                     message="OTP sent successfully",
+                    httpcode=200,
                     data={"email": otp_request.email}
                 )
             else:
@@ -208,7 +212,8 @@ class AuthHandler:
                 refresh_token=refresh_token,
                 expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
                 user=user,
-                session_id=str(session.session_id)
+                session_id=str(session.session_id),
+                httpcode=201
             )
             
         except HTTPException:
@@ -287,7 +292,8 @@ class AuthHandler:
             
             return ApiResponse(
                 success=True,
-                message="Logged out successfully"
+                message="Logged out successfully",
+                httpcode=200
             )
             
         except HTTPException:
@@ -309,7 +315,8 @@ class AuthHandler:
             # Always return success for security reasons (don't reveal if email exists)
             return ApiResponse(
                 success=True,
-                message="If the email exists, a password reset link has been sent"
+                message="If the email exists, a password reset link has been sent",
+                httpcode=200
             )
             
         except Exception as e:
@@ -333,7 +340,8 @@ class AuthHandler:
             if result:
                 return ApiResponse(
                     success=True,
-                    message="Password reset successfully"
+                    message="Password reset successfully",
+                    httpcode=200
                 )
             else:
                 raise HTTPException(
@@ -368,7 +376,8 @@ class AuthHandler:
             if result:
                 return ApiResponse(
                     success=True,
-                    message="Password changed successfully"
+                    message="Password changed successfully",
+                    httpcode=200
                 )
             else:
                 raise HTTPException(

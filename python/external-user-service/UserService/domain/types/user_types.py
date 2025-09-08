@@ -230,11 +230,11 @@ class UserUpdateModel(BaseModel):
 class LoginResponseModel(BaseModel):
     """Login response model"""
     success: bool = True
-    message: str = "Login successful"
+    message: str = "User logged in successfuly"
     data: dict
     
     @classmethod
-    def create(cls, access_token: str, refresh_token: str, expires_in: int, user: User, session_id: str, token_type: str = "Bearer"):
+    def create(cls, access_token: str, refresh_token: str, expires_in: int, user: User, session_id: str, token_type: str = "Bearer", httpcode: int = 200):
         data_obj = {
             "token": access_token,
             "refreshToken": refresh_token,
@@ -245,13 +245,17 @@ class LoginResponseModel(BaseModel):
         }
         return cls(
             success=True,
-            message="Login successful",
+            message="User logged in successfully",
+            httpcode=httpcode,
             data=data_obj
         )
 
 
 class TokenResponseModel(BaseModel):
     """Token response model"""
+    success: bool = True
+    message: str = "Token refreshed successfully"
+    httpcode: int = 200
     access_token: str
     refresh_token: Optional[str] = None
     token_type: str = "Bearer"
@@ -297,6 +301,7 @@ class UserRegistrationResponseModel(BaseModel):
     """User registration response model (without tokens)"""
     success: bool = True
     message: str = "User registered successfully"
+    httpcode: int = 201
     user: User
     
     class Config:
@@ -307,6 +312,7 @@ class ApiResponse(BaseModel):
     """Generic API response model"""
     success: bool = True
     message: Optional[str] = None
+    httpcode: int = 200
     data: Optional[Any] = None
     errors: Optional[List[str]] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)

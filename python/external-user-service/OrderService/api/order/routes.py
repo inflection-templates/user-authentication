@@ -5,7 +5,7 @@ Defines the FastAPI route endpoints for order operations
 
 from typing import List
 from fastapi import APIRouter, Depends
-from models.dtos import OrderDto, CreateOrderDto, UpdateOrderDto
+from models.dtos import OrderDto, CreateOrderDto, UpdateOrderDto, OrderResponse, OrdersListResponse, SuccessResponse
 from database.db_context import get_db_session
 from auth.dependencies import verify_token
 from .handlers import (
@@ -21,7 +21,7 @@ from .handlers import (
 router = APIRouter(prefix="/api/v1/orders", tags=["orders"])
 
 
-@router.get("", response_model=List[OrderDto])
+@router.get("", response_model=OrdersListResponse)
 async def get_all_orders(
     current_user=Depends(verify_token),
     db_session=Depends(get_db_session)
@@ -30,7 +30,7 @@ async def get_all_orders(
     return await get_all_orders_handler(db_session)
 
 
-@router.get("/{id}", response_model=OrderDto)
+@router.get("/{id}", response_model=OrderResponse)
 async def get_order_by_id(
     id: int,
     current_user=Depends(verify_token),
@@ -40,7 +40,7 @@ async def get_order_by_id(
     return await get_order_by_id_handler(id, db_session)
 
 
-@router.post("", response_model=OrderDto, status_code=201)
+@router.post("", response_model=OrderResponse)
 async def create_order(
     order_data: CreateOrderDto,
     current_user=Depends(verify_token),
@@ -50,7 +50,7 @@ async def create_order(
     return await create_order_handler(order_data, db_session)
 
 
-@router.put("/{id}", response_model=OrderDto)
+@router.put("/{id}", response_model=OrderResponse)
 async def update_order(
     id: int,
     order_data: UpdateOrderDto,
@@ -61,7 +61,7 @@ async def update_order(
     return await update_order_handler(id, order_data, db_session)
 
 
-@router.delete("/{id}", status_code=204)
+@router.delete("/{id}", response_model=SuccessResponse)
 async def delete_order(
     id: int,
     current_user=Depends(verify_token),
@@ -71,7 +71,7 @@ async def delete_order(
     await delete_order_handler(id, db_session)
 
 
-@router.put("/{id}/status")
+@router.put("/{id}/status", response_model=OrderResponse)
 async def update_order_status(
     id: int,
     status_update: dict,
