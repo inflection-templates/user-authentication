@@ -9,6 +9,7 @@ using Serilog;
 using System.Text.Json;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.JsonWebTokens;
+using OrderService.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,86 +35,13 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService.Services.OrderService>();
+builder.Services.AddHttpClient<IJwtAuthenticationService, JwtAuthenticationService>();
+builder.Services.AddSingleton<IJwtAuthenticationService, JwtAuthenticationService>();
 
-// Configure JWT Authentication to validate tokens from User Service
-var authority = builder.Configuration["Jwt:Authority"];
-var audience = builder.Configuration["Jwt:Audience"];
-var jwksUrl = builder.Configuration["Jwt:JwksUrl"] ?? $"{authority}/.well-known/jwks.json";
+builder.Services.AddHostedService<JwksRefreshBackgroundService>();
 
-Console.WriteLine($"🔐 Configuring JWT Authentication:");
-Console.WriteLine($"   • Authority: {authority}");
-Console.WriteLine($"   • Audience: {audience}");
-Console.WriteLine($"   • JWKS URL: {jwksUrl}");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = audience, // Use audience as issuer
-            ValidAudience = audience,
-            ClockSkew = TimeSpan.FromMinutes(5),
-            IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
-            {
-                // Fetch public key from UserService JWKS endpoint
-                var httpClient = new HttpClient();
-                try
-                {
-                    Log.Information("Fetching JWKS from: {JwksUrl}", jwksUrl);
-                    
-                    var response = httpClient.GetStringAsync(jwksUrl).Result;
-                    var jwks = System.Text.Json.JsonSerializer.Deserialize<JwksResponse>(response, new System.Text.Json.JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                    Log.Information("JWKS response received. Looking for key with kid: {Kid}", kid);
-                    Log.Information("Available keys in JWKS: {KeyCount}", jwks?.Keys?.Count ?? 0);
-
-                    if (jwks?.Keys != null)
-                    {
-                        foreach (var availableKey in jwks.Keys)
-                        {
-                            Log.Information("Available key: Kid={Kid}", availableKey.Kid);
-                        }
-
-                        var matchingKey = jwks.Keys.FirstOrDefault(k => k.Kid == kid);
-                        if (matchingKey != null)
-                        {
-                            Log.Information("Found matching key for kid: {Kid}", kid);
-                            var rsa = System.Security.Cryptography.RSA.Create();
-                            rsa.ImportParameters(new System.Security.Cryptography.RSAParameters
-                            {
-                                Modulus = Base64UrlEncoder.DecodeBytes(matchingKey.N),
-                                Exponent = Base64UrlEncoder.DecodeBytes(matchingKey.E)
-                            });
-                            var securityKey = new RsaSecurityKey(rsa) { KeyId = matchingKey.Kid };
-                            Log.Information("Successfully created RSA security key with kid: {Kid}", matchingKey.Kid);
-                            return new List<SecurityKey> { securityKey };
-                        }
-                        else
-                        {
-                            Log.Warning("No matching key found for kid: {Kid}. Available kids: {AvailableKids}", 
-                                kid, string.Join(", ", jwks.Keys.Select(k => k.Kid)));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error fetching JWKS from UserService");
-                }
-                
-                Log.Warning("Returning empty security keys list for kid: {Kid}", kid);
-                return new List<SecurityKey>();
-            }
-        };
-    });
-
-builder.Services.AddAuthorization();
+// Configure JWT Authentication 
+builder.Services.AddJwtAuthenticationAndAuthorization(builder.Configuration);
 
 // Add API Explorer services
 builder.Services.AddEndpointsApiExplorer();
@@ -452,17 +380,3 @@ app.Lifetime.ApplicationStarted.Register(() =>
 
 app.Run();
 
-// JWKS Response classes
-public class JwksResponse
-{
-    public List<JwksKey> Keys { get; set; } = new();
-}
-
-public class JwksKey
-{
-    public string Kty { get; set; } = string.Empty;
-    public string Use { get; set; } = string.Empty;
-    public string Kid { get; set; } = string.Empty;
-    public string N { get; set; } = string.Empty;
-    public string E { get; set; } = string.Empty;
-}
