@@ -1,6 +1,6 @@
 """
 Authentication dependencies for FastAPI
-Contains JWT token verification and authentication utilities
+Contains JWT token verification and authentication utilities with caching support
 """
 
 import os
@@ -9,46 +9,38 @@ from typing import Optional
 from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
-import httpx
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicNumbers
 from cryptography.hazmat.backends import default_backend
 import base64
 
+from .jwt_configuration import get_jwt_configuration
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# JWT Configuration
-JWT_AUTHORITY = os.getenv("JWT_AUTHORITY", "http://localhost:5000")
-JWT_AUDIENCE = os.getenv("JWT_AUDIENCE", "shala")
-JWKS_URL = os.getenv("JWT_JWKS_URL", f"{JWT_AUTHORITY}/.well-known/jwks.json")
-
 security = HTTPBearer()
 
+def get_jwt_service():
+    """Get JWT authentication service from configuration"""
+    config = get_jwt_configuration()
+    return config.get_jwt_service()
 
-async def get_jwks_key(kid: str) -> Optional[str]:
-    """Fetch JWKS key from User Service"""
-    try:
-        logger.info(f"Fetching JWKS from: {JWKS_URL}")
-        async with httpx.AsyncClient() as client:
-            response = await client.get(JWKS_URL)
-            response.raise_for_status()
-            jwks = response.json()
-            
-            logger.info(f"JWKS response received. Looking for key with kid: {kid}")
-            logger.info(f"Available keys in JWKS: {len(jwks.get('keys', []))}")
-            
-            for key in jwks.get("keys", []):
-                logger.info(f"Available key: Kid={key.get('kid')}")
-                if key.get("kid") == kid:
-                    logger.info(f"Found matching key for kid: {kid}")
-                    return key
-            
-            logger.warning(f"No matching key found for kid: {kid}")
-            return None
-            
-    except Exception as ex:
-        logger.error(f"Error fetching JWKS from UserService: {ex}")
-        return None
+
+async def get_jwks_key(kid: str) -> Optional[dict]:
+    """Fetch JWKS key from User Service with caching"""
+    jwt_service = get_jwt_service()
+    jwks_key = await jwt_service.get_jwks_key_async(kid)
+    
+    if jwks_key:
+        return {
+            "kty": jwks_key.kty,
+            "use": jwks_key.use,
+            "kid": jwks_key.kid,
+            "n": jwks_key.n,
+            "e": jwks_key.e
+        }
+    
+    return None
 
 
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -87,13 +79,16 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
         
         public_key = RSAPublicNumbers(e, n).public_key(default_backend())
         
+        # Get JWT configuration for audience and issuer
+        config = get_jwt_configuration()
+        
         # Verify token
         payload = jwt.decode(
             token,
             public_key,
             algorithms=["RS256"],
-            issuer=JWT_AUDIENCE,
-            audience=JWT_AUDIENCE,
+            issuer=config.jwt_audience,
+            audience=config.jwt_audience,
             options={"verify_exp": True, "verify_iss": True, "verify_aud": True}
         )
         

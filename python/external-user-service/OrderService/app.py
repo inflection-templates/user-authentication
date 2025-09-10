@@ -1,6 +1,6 @@
 """
 Order Management Service - Python FastAPI Implementation
-Equivalent to the .NET OrderService
+Equivalent to the .NET OrderService with JWKS caching support
 """
 
 import os
@@ -20,6 +20,7 @@ from database.db_context import init_db
 from api.customer.routes import router as customer_router
 from api.product.routes import router as product_router
 from api.order.routes import router as order_router
+from auth.jwt_configuration import get_jwt_configuration
 
 # Configure logging
 logging.basicConfig(
@@ -34,13 +35,19 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     logger.info("Starting Order Management Service...")
-    logger.info("Environment: {os.getenv('ENVIRONMENT', 'development')}")
-    logger.info("User Service URL: {os.getenv('JWT_AUTHORITY', 'http://localhost:5000')}")
+    logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+    logger.info(f"User Service URL: {os.getenv('JWT_AUTHORITY', 'http://localhost:5000')}")
     logger.info("Initializing database...")
     
     # Initialize database
     await init_db()
     logger.info("Database initialized successfully")
+    
+    # Initialize JWT authentication with caching
+    logger.info("Initializing JWT authentication with caching...")
+    jwt_config = get_jwt_configuration()
+    await jwt_config.start_background_services()
+    logger.info("JWT authentication services initialized")
     
     logger.info("Order Management Service is ready!")   
     logger.info("Order Service is running and listening on port 5001")
@@ -48,6 +55,12 @@ async def lifespan(app: FastAPI):
     yield
     
     logger.info("Shutting down Order Management Service...")
+    
+    # Stop background services
+    await jwt_config.stop_background_services()
+    logger.info("JWT background services stopped")
+    
+    logger.info("Order Management Service shutdown complete")
 
 app = FastAPI(
     title="Order Management Service API",
