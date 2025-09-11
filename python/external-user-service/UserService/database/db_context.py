@@ -54,7 +54,7 @@ async def create_database_if_not_exists():
     import logging
     from urllib.parse import urlparse
     
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(":")
     
     # Parse the database URL
     parsed_url = urlparse(DATABASE_URL)
@@ -77,9 +77,19 @@ async def create_database_if_not_exists():
         )
         
         with connection.cursor() as cursor:
-            # Create database if it doesn't exist
-            cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{database_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-            logger.info(f"✅ Database '{database_name}' created or already exists")
+            # Check if database exists
+            cursor.execute("SHOW DATABASES LIKE %s", (database_name,))
+            result = cursor.fetchone()
+            
+            if result:
+                logger.info(f"Database '{database_name}' exists")
+                logger.info(f"Connecting to '{database_name}'")
+            else:
+                logger.info(f"Database '{database_name}' not found")
+                logger.info(f"Creating database '{database_name}'")
+                logger.info(f"Connecting to database '{database_name}'")
+                # Create database if it doesn't exist
+                cursor.execute(f"CREATE DATABASE `{database_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
         
         connection.commit()
         connection.close()
@@ -291,7 +301,7 @@ async def seed_data():
         
         await session.commit()
         print("✅ Database seeded with initial data")
-        print("   • Default tenant created")
-        print("   • System roles created (SystemAdmin, User)")
-        print("   • System admin user: admin@example.com (password: Admin@123)")
-        print("   • Sample user: john.doe@example.com (password: User@123)")
+        # print("   • Default tenant created")
+        # print("   • System roles created (SystemAdmin, User)")
+        # print("   • System admin user: admin@example.com (password: Admin@123)")
+        # print("   • Sample user: john.doe@example.com (password: User@123)")

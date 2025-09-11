@@ -33,27 +33,27 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
-    print("🚀 Starting User Service...")
-    print(f"📊 Environment: {os.getenv('ENVIRONMENT', 'development')}")
-    print("🔧 Loading configurations...")
+    print("Starting User Service...")
+    print(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+    print("Loading configurations...")
     
     # Configure services
     await configure_services(app)
     
-    print("🗄️ Initializing database...")
+    print("Initializing database...")
     await init_db()
-    print("✅ Database initialized successfully")
+    print("Database initialized successfully")
     
-    print("⚙️ Configuring application...")
+    print("Configuring application...")
     
-    print("🎯 User Service configuration complete!")
-    print("=" * 50)
-    print("🚀 User Service is now running and ready to accept requests!")
-    print("=" * 50)
+    # print("User Service configuration complete! ")
+    # print("=" * 50)
+    print("User Service is up and running on port 5000")
+    # print("=" * 50)
     
     yield
     
-    print("🛑 Shutting down User Service...")
+    print("Shutting down User Service...")
 
 
 app = FastAPI(
@@ -63,7 +63,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure middleware
+# Configure middleware before application startup
 configure_middleware(app)
 
 # Include API routes

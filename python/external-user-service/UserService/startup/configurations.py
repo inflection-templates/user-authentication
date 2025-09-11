@@ -7,7 +7,7 @@ import os
 import logging
 from fastapi import FastAPI
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(":")
 
 
 async def configure_services(app: FastAPI):
@@ -68,7 +68,7 @@ async def configure_services(app: FastAPI):
         }
     }
     
-    logger.info("✅ Application configuration loaded")
+    logger.info("Application configuration loaded")
     logger.info(f"   • Database: {app.state.config['database']['connection_string']}")
     logger.info(f"   • JWT Issuer: {app.state.config['jwt']['issuer']}")
     logger.info(f"   • Cache Provider: {app.state.config['cache']['provider']}")

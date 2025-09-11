@@ -101,7 +101,7 @@ def configure_middleware(app: FastAPI):
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(RequestLoggingMiddleware)
     
-    logger.info("✅ Middleware configured")
+    logger.info("Middleware configured")
     logger.info("   • CORS enabled for all origins")
     logger.info("   • Request logging enabled")
     logger.info("   • Security headers enabled")
