@@ -1,7 +1,0 @@
-{
-    "Reminder": {
-        "NotificationType": "Reminder",
-        "Title"           : "Hey {{Name}}, This is user reminder for {{ReminderName}}.",
-        "Body"            : "Please complete the task before {{EndTime}}."
-    },
-}
