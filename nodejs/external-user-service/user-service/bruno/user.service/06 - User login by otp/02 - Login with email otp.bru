@@ -1,0 +1,35 @@
+meta {
+  name: 02 - Login with email otp
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/auth/login-with-email-otp
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: {{API_CLIENT_INTERNAL_KEY}}
+}
+
+body:json {
+  {
+    "Email": "prashantkharade3721@gmail.com",
+    "TenantId": "{{TENANT_ID}}",
+    "Otp": "537615"
+  }
+}
+
+tests {
+  try {
+      var jsonRes = res.getBody();
+      bru.setEnvVar("USER_JWT", jsonRes.Data.AccessToken);
+  }
+  catch (error) {
+      console.log(error.message);
+  }
+  
+}

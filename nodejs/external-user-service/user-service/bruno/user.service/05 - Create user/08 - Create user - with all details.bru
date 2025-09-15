@@ -1,0 +1,75 @@
+meta {
+  name: 08 - Create user - with all details
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{BASE_URL}}/users
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: {{API_CLIENT_INTERNAL_KEY}}
+}
+
+body:json {
+  {
+    "TenantId": "{{TENANT_ID}}",
+    "PhoneCode": "{{PHONE_COUNTRY_CODE}}",
+    "PhoneNumber": "{{PHONE_NUMBER}}",
+    "Email": "prashantkharade3721-testing@gmail.com",
+    "Password": "PPk@3721",
+    "UserName": "Prashant_kharade_3721-testing",
+    "DefaultTimeZone": "+03:30",
+    "CurrentTimeZone": "+02:30",
+    "IsTestUser": true,
+    "FirstName": "Prashant",
+    "LastName": "Kharade",
+    "MiddleName": "Pandurang",
+    "PreferredLanguage": "en-US",
+    "Gender": "Male",
+    "DateOfBirth": "2001-07-03",
+    "ProfileImageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Sachin-Tendulkar_%28cropped%29.jpg/250px-Sachin-Tendulkar_%28cropped%29.jpg"
+  }
+}
+
+script:pre-request {
+  var phonenumber = (Math.floor(Math.random() * 9000000000) + 1000000000).toString();
+  bru.setEnvVar("PHONE_NUMBER", phonenumber);
+  bru.setEnvVar("PHONE_COUNTRY_CODE", "+91");
+}
+
+tests {
+  try {
+      var jsonRes = res.getBody();
+      bru.setEnvVar("PATIENT_USER_ID", jsonRes.Data.Patient.User.id);
+      bru.setEnvVar("PATIENT_PERSON_ID", jsonRes.Data.Patient.User.Person.id);
+      bru.setEnvVar("PERSON_ID", jsonRes.Data.Patient.User.Person.id);
+      bru.setEnvVar("PERSON_ID_1", jsonRes.Data.Patient.User.Person.id);
+  }
+  catch (error) {
+      console.log(error.message);
+  }
+}
+
+docs {
+  Registers patient. Phone number is the only mandatory field. The rest of the fields are optional. Phone number has to be specified in this format - 'country-code-phone-number'. e.g. "+91-1234567890".
+  
+  The typical request body is as follows -
+  `
+  {
+      "Phone": "+91-1234567890",
+      "Prefix": "Mr.",
+      "FirstName": "John",
+      "MiddleName": "X",
+      "LastName": "Doe",
+      "Email": "john.doe@gmail.com",
+      "Gender": "Male",
+      "BirthDate": "1979-01-01",
+      "ImageResourceId": "20fd7e52-0d24-4599-bda5-3ed7be2dd383"
+  }
+  `
+}
