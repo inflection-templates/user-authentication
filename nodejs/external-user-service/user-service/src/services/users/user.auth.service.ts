@@ -66,11 +66,35 @@ export class UserAuthService {
     };
 
     public loginWithEmailPassword = async (model: UserLoginPasswordEmailParams): Promise<UserLoginResult> => {
-        const tenantId = model.TenantId;
-        const tenant = await this._tenantRepo.getById(tenantId);
-        if (!tenant) {
-            throw new ApiError(404, 'Tenant not found.');
+        let tenant;
+        let tenantId = model.TenantId;
+        
+        // If no tenant provided, use default tenant (like Python service)
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
         }
+        
         const user = await this._userRepo.getByEmail(tenantId, model.Email);
         if (!user) {
             throw new ApiError(404, 'User not found.');
@@ -79,11 +103,35 @@ export class UserAuthService {
     };
 
     public loginWithPhonePassword = async (model: UserLoginPasswordPhoneParams): Promise<UserLoginResult> => {
-        const tenantId = model.TenantId;
-        const tenant = await this._tenantRepo.getById(tenantId);
-        if (!tenant) {
-            throw new ApiError(404, 'Tenant not found.');
+        let tenant;
+        let tenantId = model.TenantId;
+        
+        // If no tenant provided, use default tenant (like Python service)
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
         }
+        
         const user = await this._userRepo.getByPhone(tenantId, model.PhoneCode, model.PhoneNumber);
         if (!user) {
             throw new ApiError(404, 'User not found.');
@@ -92,11 +140,35 @@ export class UserAuthService {
     };
 
     public loginWithUsernamePassword = async (model: UserLoginPasswordUsernameParams): Promise<UserLoginResult> => {
-        const tenantId = model.TenantId;
-        const tenant = await this._tenantRepo.getById(tenantId);
-        if (!tenant) {
-            throw new ApiError(404, 'Tenant not found.');
+        let tenant;
+        let tenantId = model.TenantId;
+        
+        // If no tenant provided, use default tenant (like Python service)
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
         }
+        
         const user = await this._userRepo.getByUserName(model.UserName);
         if (!user) {
             throw new ApiError(404, 'User not found.');
@@ -105,11 +177,35 @@ export class UserAuthService {
     };
 
     public loginWithPhoneOtp = async (model: UserLoginOtpPhoneParams): Promise<UserLoginResult> => {
-        const tenantId = model.TenantId;
-        const tenant = await this._tenantRepo.getById(tenantId);
-        if (!tenant) {
-            throw new ApiError(404, 'Tenant not found.');
+        let tenant;
+        let tenantId = model.TenantId;
+        
+        // If no tenant provided, use default tenant (like Python service)
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
         }
+        
         const user = await this._userRepo.getByPhone(tenantId, model.PhoneCode, model.PhoneNumber);
         if (!user) {
             throw new ApiError(404, 'User not found.');
@@ -118,11 +214,35 @@ export class UserAuthService {
     };
 
     public loginWithEmailOtp = async (model: UserLoginOtpEmailParams): Promise<UserLoginResult> => {
-        const tenantId = model.TenantId;
-        const tenant = await this._tenantRepo.getById(tenantId);
-        if (!tenant) {
-            throw new ApiError(404, 'Tenant not found.');
+        let tenant;
+        let tenantId = model.TenantId;
+        
+        // If no tenant provided, use default tenant (like Python service)
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
         }
+        
         const user = await this._userRepo.getByEmail(tenantId, model.Email);
         if (!user) {
             throw new ApiError(404, 'User not found.');
@@ -131,11 +251,35 @@ export class UserAuthService {
     };
 
     public generateEmailOtp = async (model: EmailOtpCreateModel): Promise<UserAccountActionResult> => {
-        const tenantId = model.TenantId;
-        const tenant = await this._tenantRepo.getById(tenantId);
-        if (!tenant) {
-            throw new ApiError(404, 'Tenant not found.');
+        let tenant;
+        let tenantId = model.TenantId;
+        
+        // If no tenant provided, use default tenant (like Python service)
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
         }
+        
         const user = await this._userRepo.getByEmail(tenantId, model.Email);
         if (!user) {
             throw new ApiError(404, 'User not found.');
@@ -156,11 +300,35 @@ export class UserAuthService {
     };
 
     public generatePhoneOtp = async (model: PhoneOtpCreateModel): Promise<UserAccountActionResult> => {
-        const tenantId = model.TenantId;
-        const tenant = await this._tenantRepo.getById(tenantId);
-        if (!tenant) {
-            throw new ApiError(404, 'Tenant not found.');
+        let tenant;
+        let tenantId = model.TenantId;
+        
+        // If no tenant provided, use default tenant (like Python service)
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
         }
+        
         const user = await this._userRepo.getByPhone(tenantId, model.PhoneCode, model.PhoneNumber);
         if (!user) {
             throw new ApiError(404, 'User not found.');

@@ -21,6 +21,7 @@ import { UserRoleService } from '../../../services/authorization/user.role.servi
 import { ConfigurationManager } from '../../../config/configuration.manager';
 import { RoleService } from '../../../services/authorization/role.service';
 import { DefaultRoleTypes } from '../../../domain.types/authorization/enums';
+import { TenantService } from '../../../services/tenant/tenant.service';
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,6 +41,8 @@ export class UserController extends BaseController {
     
     _roleService: RoleService = Injector.Container.resolve(RoleService);
 
+    _tenantService: TenantService = Injector.Container.resolve(TenantService);
+
     constructor() {
         super();
     }
@@ -49,6 +52,28 @@ export class UserController extends BaseController {
     create = async (request: express.Request, response: express.Response): Promise<void> => {
         try {
             const model: UserCreateModel = await UserValidator.create(request);
+
+            // If no tenant provided, use default tenant (like Python service)
+            if (!model.TenantId) {
+                let defaultTenant = await this._tenantService.getTenantWithCode('default');
+                
+                // If no tenant with code 'default', use the first available tenant
+                if (!defaultTenant) {
+                    const allTenants = await this._tenantService.search({ 
+                        PageIndex: 0, 
+                        ItemsPerPage: 1 
+                    });
+                    if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                        defaultTenant = allTenants.Items[0];
+                    }
+                }
+                
+                if (!defaultTenant) {
+                    throw new ApiError(404, 'No tenant found. Please create a tenant first.');
+                }
+                
+                model.TenantId = defaultTenant.id;
+            }
 
             let user: UserDto = null;
 

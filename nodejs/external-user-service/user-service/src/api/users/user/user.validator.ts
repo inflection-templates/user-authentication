@@ -19,7 +19,7 @@ export class UserValidator {
             }
 
             const schema = Joi.object({
-                TenantId        : Joi.string().uuid().required(),
+                TenantId        : Joi.string().uuid().optional(),
                 Prefix          : Joi.string().optional().trim(),
                 FirstName       : Joi.string().optional().trim(),
                 MiddleName      : Joi.string().optional().trim(),
@@ -58,7 +58,7 @@ export class UserValidator {
             request.body.RoleId = parseInt(request.body.RoleId);
         }
         const model: UserCreateModel = {
-            TenantId          : request.body.TenantId,
+            TenantId          : request.body.TenantId ?? null,
             Prefix            : request.body.Prefix ?? null,
             FirstName         : request.body.FirstName,
             MiddleName        : request.body.MiddleName ?? null,
