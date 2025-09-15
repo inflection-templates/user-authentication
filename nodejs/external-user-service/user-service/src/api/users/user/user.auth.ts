@@ -14,10 +14,12 @@ export class UserAuth {
 
     static readonly create: UserAuthOptions = {
         ...DefaultUserAuthOptions,
-        Context     : `${this._baseContext}.Create`,
-        Ownership   : ResourceOwnership.System,
-        ActionScope : ActionScope.Public,
-        RequestType : RequestType.CreateOne,
+        Context        : `${this._baseContext}.Create`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.CreateOne,
+        SignupOrSignin : true,
+        ClientAppAuth  : false,
     };
 
     static readonly getById: UserAuthOptions = {

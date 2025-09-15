@@ -60,5 +60,5 @@ export const DefaultUserAuthOptions: UserAuthOptions = {
     AlternateAuth       : false,
     SignupOrSignin      : false,
     OptionalUserAuth    : false,
-    ClientAppAuth       : true
+    ClientAppAuth       : false
 };
