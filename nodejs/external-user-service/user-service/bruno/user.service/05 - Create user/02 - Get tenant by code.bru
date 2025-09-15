@@ -1,0 +1,28 @@
+meta {
+  name: 02 - Get tenant by code
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/tenants/by-code/default
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_CLIENT_INTERNAL_KEY}}
+  Content-Type: application/json
+}
+
+tests {
+  try {
+      var jsonRes = res.getBody();
+      var id = jsonRes.Data.Tenant.id;
+      bru.setEnvVar("TENANT_ID", id);
+  }
+  catch (error) {
+      console.log(error.message);
+  }
+  
+}
