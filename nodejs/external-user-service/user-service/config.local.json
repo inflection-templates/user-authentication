@@ -42,5 +42,5 @@
     },
     "MaxUploadFileSize": 104857600,
     "InternalClientAppManagement": true,
-    "ClientAppAuth": true
+    "ClientAppAuth": false
 }
