@@ -34,6 +34,7 @@ export interface JWKSKey {
 }
 
 export class JwtRsaTokenService {
+    private static _instance: JwtRsaTokenService;
     private _privateKey: string;
     private _publicKey: string;
     private _keyId: string;
@@ -41,7 +42,8 @@ export class JwtRsaTokenService {
     private _audience: string;
     private _accessTokenValidityDays: number;
     private _keyPairPath: string;
-    constructor() {
+
+    private constructor() {
         this._issuer = process.env.JWT_ISSUER || 'shala';
         this._audience = process.env.JWT_AUDIENCE || 'shala';
         this._accessTokenValidityDays = parseInt(process.env.JWT_ACCESS_TOKEN_VALIDITY_DAYS || '5');
@@ -52,6 +54,13 @@ export class JwtRsaTokenService {
         this._generateKeyId();
         
         logger.info(`JWT RSA Token Service initialized with persistent key ID: ${this._keyId}`);
+    }
+
+    public static getInstance(): JwtRsaTokenService {
+        if (!JwtRsaTokenService._instance) {
+            JwtRsaTokenService._instance = new JwtRsaTokenService();
+        }
+        return JwtRsaTokenService._instance;
     }
 
     /**

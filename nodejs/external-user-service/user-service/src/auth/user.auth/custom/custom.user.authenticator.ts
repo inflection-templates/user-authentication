@@ -31,7 +31,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
         this._userAuthService = Injector.Container.resolve(UserAuthService);
         this._tenantService = Injector.Container.resolve(TenantService);
         this._roleService = Injector.Container.resolve(RoleService);
-        this._jwtRsaService = new JwtRsaTokenService();
+                this._jwtRsaService = JwtRsaTokenService.getInstance();
     }
 
     public authenticate = async (
