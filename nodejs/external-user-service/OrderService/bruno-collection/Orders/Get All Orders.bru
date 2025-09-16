@@ -1,0 +1,27 @@
+meta {
+  name: Get All Orders
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/orders
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+tests {
+  test("Get all orders returns success", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().success).to.equal(true);
+    expect(res.getBody().orders).to.be.an('array');
+  });
+}

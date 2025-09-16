@@ -12,6 +12,7 @@ import { register as registerUserRoutes } from "./users/user/user.routes";
 import { register as registerTenantRoutes } from './tenant/tenants/tenant.routes';
 import { register as registerUserMetadataRoutes } from './users/metadata/user.metadata.routes';
 import { register as registerUserAuthRoutes } from './users/auth/user.auth.routes';
+import { wellKnownRoutes } from './wellknown/wellknown.routes';
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +35,9 @@ export class Router {
                     });
                 });
 
+                // Well-known endpoints (JWKS, OpenID configuration)
+                this._app.use('/.well-known', wellKnownRoutes);
+                
                 registerUserRoutes(this._app);
                 registerUserAuthRoutes(this._app);
                 registerRoleRoutes(this._app);

@@ -1,0 +1,48 @@
+meta {
+  name: Create Product
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/products
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Gaming Keyboard",
+    "description": "Mechanical gaming keyboard with RGB lighting",
+    "price": 89.99,
+    "sku": "KB001",
+    "stock_quantity": 50,
+    "category": "Electronics"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+tests {
+  test("Create product returns success", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().success).to.equal(true);
+    expect(res.getBody().product).to.be.an('object');
+    expect(res.getBody().product.id).to.exist;
+    expect(res.getBody().product.name).to.equal("Gaming Keyboard");
+    expect(res.getBody().product.price).to.equal(89.99);
+  });
+  
+  test("Store product ID for future requests", function() {
+    if (res.getStatus() === 201) {
+      bru.setVar("product_id", res.getBody().product.id);
+    }
+  });
+}

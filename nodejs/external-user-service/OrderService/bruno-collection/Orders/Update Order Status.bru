@@ -1,0 +1,39 @@
+meta {
+  name: Update Order Status
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{base_url}}/api/orders/:orderId/status
+  body: json
+}
+
+params:path {
+  orderId: {{order_id}}
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "Shipped"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+tests {
+  test("Update order status returns success", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().success).to.equal(true);
+    expect(res.getBody().order).to.be.an('object');
+    expect(res.getBody().order.status).to.equal("Shipped");
+  });
+}

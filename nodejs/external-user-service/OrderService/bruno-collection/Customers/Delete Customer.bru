@@ -1,0 +1,30 @@
+meta {
+  name: Delete Customer
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/customers/:customerId
+}
+
+params:path {
+  customerId: {{customer_id}}
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+tests {
+  test("Delete customer returns success", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().success).to.equal(true);
+  });
+}
