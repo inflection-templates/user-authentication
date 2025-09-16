@@ -148,7 +148,7 @@ export default class Application {
         if (process.env.NODE_ENV === 'test') {
             // Drop test database if needed
         }
-        const databaseConnector = Injector.Container.resolve(DatabaseConnector);
+        const databaseConnector = Injector.Container.resolve(DatabaseConnector) as DatabaseConnector;
         await databaseConnector.init();
     }
 
@@ -162,7 +162,7 @@ export default class Application {
             logger.info('JWT background services stopped');
             
             // Close database connections
-            const databaseConnector = Injector.Container.resolve(DatabaseConnector);
+            const databaseConnector = Injector.Container.resolve(DatabaseConnector) as DatabaseConnector;
             await databaseConnector.close();
             logger.info('Database connections closed');
             
