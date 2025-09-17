@@ -35,6 +35,9 @@ export const register = (app: express.Application): void => {
     
     router.get('/oauth/google/login', auth(AuthAuth.googleOAuthLogin), controller.googleOAuthLogin);
     router.get('/oauth/google/callback', auth(AuthAuth.googleOAuthCallback), controller.googleOAuthCallback);
+    
+    router.get('/oauth/facebook/login', auth(AuthAuth.facebookOAuthLogin), controller.facebookOAuthLogin);
+    router.get('/oauth/facebook/callback', auth(AuthAuth.facebookOAuthCallback), controller.facebookOAuthCallback);
 
     app.use('/api/v1/auth', router);
 

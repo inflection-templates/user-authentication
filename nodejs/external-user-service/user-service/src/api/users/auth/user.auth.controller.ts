@@ -26,6 +26,7 @@ import { UserDeviceDetailsService } from '../../../services/users/user.device.de
 import { UserAccountActionResult, UserDto } from '../../../domain.types/users/user.types';
 import { GitHubOAuthCallbackParams, GitHubAccessTokenModel, GitHubUser, GitHubEmail } from '../../../domain.types/users/github.oauth.types';
 import { GoogleOAuthCallbackParams, GoogleAccessTokenModel, GoogleUser } from '../../../domain.types/users/google.oauth.types';
+import { FacebookOAuthCallbackParams, FacebookAccessTokenModel, FacebookUser } from '../../../domain.types/users/facebook.oauth.types';
 import { ConfigurationManager } from '../../../config/configuration.manager';
 import axios from 'axios';
 import { Helper } from '../../../common/helper';
@@ -665,6 +666,158 @@ export class UserAuthController extends BaseController {
             return null;
         } catch (error) {
             console.error('Error fetching Google user:', error);
+            return null;
+        }
+    }
+
+    facebookOAuthLogin = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const clientId = process.env.FACEBOOK_CLIENT_ID;
+            const baseUrl = process.env.BASE_URL;
+            const redirectUri = `${baseUrl}/api/v1/auth/oauth/facebook/callback`;
+            const state = Math.random().toString(36).substring(2, 15);
+            
+            if (!clientId) {
+                ResponseHandler.failure(request, response, 'Facebook OAuth not configured. Please set FACEBOOK_CLIENT_ID environment variable.', 500);
+                return;
+            }
+
+            if (!baseUrl) {
+                ResponseHandler.failure(request, response, 'BASE_URL environment variable is required.', 500);
+                return;
+            }
+
+            const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=email,public_profile&response_type=code&state=${state}`;
+
+            ResponseHandler.success(request, response, 'Facebook OAuth URL generated', 200, {
+                authUrl: authUrl,
+                state: state
+            });
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
+    facebookOAuthCallback = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const { code, state }: FacebookOAuthCallbackParams = await UserAuthValidator.facebookOAuthCallback(request);
+
+            const clientId = process.env.FACEBOOK_CLIENT_ID;
+            const clientSecret = process.env.FACEBOOK_CLIENT_SECRET;
+            const baseUrl = process.env.BASE_URL;
+            const redirectUri = `${baseUrl}/api/v1/auth/oauth/facebook/callback`;
+
+            if (!clientId || !clientSecret) {
+                ResponseHandler.failure(request, response, 'Facebook OAuth not configured', 500);
+                return;
+            }
+
+            // Exchange code for access token
+            const tokenUrl = `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&client_secret=${clientSecret}&code=${code}`;
+            
+            const tokenResponse = await axios.get(tokenUrl);
+
+            if (tokenResponse.status !== 200 || !tokenResponse.data.access_token) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve Facebook access token', 500);
+                return;
+            }
+
+            const tokenData: FacebookAccessTokenModel = tokenResponse.data;
+            const facebookAccessToken = tokenData.access_token;
+
+            // Get user information from Facebook
+            const facebookUser = await this.getFacebookUser(facebookAccessToken);
+            if (!facebookUser) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve Facebook user information', 500);
+                return;
+            }
+
+            const userEmail = facebookUser.email;
+            if (!userEmail) {
+                ResponseHandler.failure(request, response, 'Facebook user email is required. Please ensure email permission is granted.', 400);
+                return;
+            }
+
+            // Check if user already exists
+            const existingUser = await this._userService.getByEmail(null, userEmail);
+            
+            if (existingUser) {
+                // User exists, log them in
+                const loginResult = await this._service.loginWithOAuth(existingUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${existingUser.UserName} logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : existingUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, existingUser);
+                ResponseHandler.success(request, response, message, 200, data, true);
+            } else {
+                // Create new user
+                const firstName = facebookUser.first_name || '';
+                const lastName = facebookUser.last_name || '';
+
+                // Get default tenant for user creation
+                const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
+                const tenantId = tenant?.id || null;
+
+                const createModel = {
+                    FirstName : firstName,
+                    LastName  : lastName,
+                    Email     : userEmail,
+                    UserName  : userEmail.split('@')[0], // Use email prefix as username
+                    Password  : Helper.generatePassword(),
+                    TenantId  : tenantId,
+                };
+
+                const newUser = await this._userService.create(createModel);
+                if (!newUser) {
+                    ResponseHandler.failure(request, response, 'Unable to create user account', 500);
+                    return;
+                }
+
+                // Log in the new user
+                const loginResult = await this._service.loginWithOAuth(newUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${newUser.UserName} created and logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : newUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, newUser);
+                ResponseHandler.success(request, response, message, 201, data, true);
+            }
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
+    private async getFacebookUser(accessToken: string): Promise<FacebookUser | null> {
+        try {
+            const response = await axios.get(`https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${accessToken}`);
+
+            if (response.status === 200) {
+                return response.data as FacebookUser;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error fetching Facebook user:', error);
             return null;
         }
     }

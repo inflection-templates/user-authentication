@@ -189,4 +189,22 @@ export class AuthAuth {
         SignupOrSignin : true,
     };
 
+    static readonly facebookOAuthLogin: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.FacebookOAuthLogin`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.GetOne,
+        SignupOrSignin : true,
+    };
+
+    static readonly facebookOAuthCallback: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.FacebookOAuthCallback`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.UpdateOne,
+        SignupOrSignin : true,
+    };
+
 }
