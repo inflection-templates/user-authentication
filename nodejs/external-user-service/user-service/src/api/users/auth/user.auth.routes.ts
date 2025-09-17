@@ -32,6 +32,9 @@ export const register = (app: express.Application): void => {
 
     router.get('/oauth/github/login', auth(AuthAuth.githubOAuthLogin), controller.githubOAuthLogin);
     router.get('/oauth/github/callback', auth(AuthAuth.githubOAuthCallback), controller.githubOAuthCallback);
+    
+    router.get('/oauth/google/login', auth(AuthAuth.googleOAuthLogin), controller.googleOAuthLogin);
+    router.get('/oauth/google/callback', auth(AuthAuth.googleOAuthCallback), controller.googleOAuthCallback);
 
     app.use('/api/v1/auth', router);
 

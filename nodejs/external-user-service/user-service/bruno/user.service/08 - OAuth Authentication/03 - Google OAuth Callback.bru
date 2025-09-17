@@ -1,0 +1,36 @@
+meta {
+  name: Google OAuth Callback
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/v1/auth/oauth/google/callback?code={{google_code}}&state={{google_state}}
+  body: none
+  auth: none
+}
+
+params:query {
+  code: {{google_code}}
+  state: {{google_state}}
+}
+
+vars:pre-request {
+  google_code: test_authorization_code_456
+  google_state: random_state_value_google
+}
+
+assert {
+  res.status: 200
+  res.body.Success: true
+}
+
+tests {
+  test("Should authenticate user with Google OAuth", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.Success).to.be.true;
+    expect(res.body.Data).to.have.property('AccessToken');
+    expect(res.body.Data).to.have.property('User');
+    expect(res.body.Data).to.have.property('SessionId');
+  });
+}

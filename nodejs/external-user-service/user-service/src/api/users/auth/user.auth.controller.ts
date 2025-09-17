@@ -25,6 +25,7 @@ import { UserPasswordChangeModel } from '../../../domain.types/users/user.passwo
 import { UserDeviceDetailsService } from '../../../services/users/user.device.details.service';
 import { UserAccountActionResult, UserDto } from '../../../domain.types/users/user.types';
 import { GitHubOAuthCallbackParams, GitHubAccessTokenModel, GitHubUser, GitHubEmail } from '../../../domain.types/users/github.oauth.types';
+import { GoogleOAuthCallbackParams, GoogleAccessTokenModel, GoogleUser } from '../../../domain.types/users/google.oauth.types';
 import { ConfigurationManager } from '../../../config/configuration.manager';
 import axios from 'axios';
 import { Helper } from '../../../common/helper';
@@ -502,6 +503,171 @@ export class UserAuthController extends BaseController {
             ResponseHandler.handleError(request, response, error);
         }
     };
+
+    googleOAuthLogin = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const clientId = process.env.GOOGLE_CLIENT_ID;
+            const baseUrl = process.env.BASE_URL;
+            const redirectUri = `${baseUrl}/api/v1/auth/oauth/google/callback`;
+            const state = Math.random().toString(36).substring(2, 15);
+            
+            if (!clientId) {
+                ResponseHandler.failure(request, response, 'Google OAuth not configured. Please set GOOGLE_CLIENT_ID environment variable.', 500);
+                return;
+            }
+
+            if (!baseUrl) {
+                ResponseHandler.failure(request, response, 'BASE_URL environment variable is required.', 500);
+                return;
+            }
+
+            const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid%20email%20profile&response_type=code&state=${state}`;
+
+            ResponseHandler.success(request, response, 'Google OAuth URL generated', 200, {
+                authUrl: authUrl,
+                state: state
+            });
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
+    googleOAuthCallback = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const { code, state }: GoogleOAuthCallbackParams = await UserAuthValidator.googleOAuthCallback(request);
+
+            const clientId = process.env.GOOGLE_CLIENT_ID;
+            const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+            const baseUrl = process.env.BASE_URL;
+            const redirectUri = `${baseUrl}/api/v1/auth/oauth/google/callback`;
+
+            if (!clientId || !clientSecret) {
+                ResponseHandler.failure(request, response, 'Google OAuth not configured', 500);
+                return;
+            }
+
+            // Exchange code for access token
+            const tokenUrl = 'https://oauth2.googleapis.com/token';
+            const tokenResponse = await axios.post(tokenUrl, {
+                client_id: clientId,
+                client_secret: clientSecret,
+                code: code,
+                grant_type: 'authorization_code',
+                redirect_uri: redirectUri
+            }, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (tokenResponse.status !== 200) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve Google access token', 500);
+                return;
+            }
+
+            const tokenData: GoogleAccessTokenModel = tokenResponse.data;
+            const googleAccessToken = tokenData.access_token;
+
+            // Get user information from Google
+            const googleUser = await this.getGoogleUser(googleAccessToken);
+            if (!googleUser) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve Google user information', 500);
+                return;
+            }
+
+            const userEmail = googleUser.email;
+            if (!userEmail) {
+                ResponseHandler.failure(request, response, 'Google user email is required', 400);
+                return;
+            }
+
+            // Check if user already exists
+            const existingUser = await this._userService.getByEmail(null, userEmail);
+            
+            if (existingUser) {
+                // User exists, log them in
+                const loginResult = await this._service.loginWithOAuth(existingUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${existingUser.UserName} logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : existingUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, existingUser);
+                ResponseHandler.success(request, response, message, 200, data, true);
+            } else {
+                // Create new user
+                const firstName = googleUser.given_name || '';
+                const lastName = googleUser.family_name || '';
+
+                // Get default tenant for user creation
+                const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
+                const tenantId = tenant?.id || null;
+
+                const createModel = {
+                    FirstName : firstName,
+                    LastName  : lastName,
+                    Email     : userEmail,
+                    UserName  : googleUser.email.split('@')[0], // Use email prefix as username
+                    Password  : Helper.generatePassword(),
+                    TenantId  : tenantId,
+                };
+
+                const newUser = await this._userService.create(createModel);
+                if (!newUser) {
+                    ResponseHandler.failure(request, response, 'Unable to create user account', 500);
+                    return;
+                }
+
+                // Log in the new user
+                const loginResult = await this._service.loginWithOAuth(newUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${newUser.UserName} created and logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : newUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, newUser);
+                ResponseHandler.success(request, response, message, 201, data, true);
+            }
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
+    private async getGoogleUser(accessToken: string): Promise<GoogleUser | null> {
+        try {
+            const response = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.status === 200) {
+                return response.data as GoogleUser;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error fetching Google user:', error);
+            return null;
+        }
+    }
 
     private extract(user: UserDto, accessToken: string, refreshToken: string, result: UserLoginResult) {
         const isProfileComplete = user.FirstName &&

@@ -16,6 +16,7 @@ import {
     UserPasswordResetSendPhoneOtpModel
 } from '../../../domain.types/users/user.password.reset.types';
 import { GitHubOAuthCallbackParams } from '../../../domain.types/users/github.oauth.types';
+import { GoogleOAuthCallbackParams } from '../../../domain.types/users/google.oauth.types';
 import { OTPScope } from '../../../domain.types/users/user.enums';
 import { ErrorHandler } from '../../../common/handlers/error.handler';
 
@@ -318,6 +319,29 @@ export class UserAuthValidator {
             const params: GitHubOAuthCallbackParams = {
                 code  : request.query.code as string,
                 state : request.query.state as string
+            };
+
+            return params;
+        } catch (error) {
+            ErrorHandler.handleValidationError(error);
+        }
+    };
+
+    static googleOAuthCallback = async (request: express.Request)
+        : Promise<GoogleOAuthCallbackParams> => {
+        try {
+            const schema = Joi.object({
+                code  : Joi.string().required(),
+                state : Joi.string().optional(),
+                scope : Joi.string().optional()
+            });
+
+            await schema.validateAsync(request.query);
+
+            const params: GoogleOAuthCallbackParams = {
+                code  : request.query.code as string,
+                state : request.query.state as string,
+                scope : request.query.scope as string
             };
 
             return params;

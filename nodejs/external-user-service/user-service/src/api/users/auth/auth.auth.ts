@@ -171,4 +171,22 @@ export class AuthAuth {
         SignupOrSignin : true,
     };
 
+    static readonly googleOAuthLogin: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.GoogleOAuthLogin`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.GetOne,
+        SignupOrSignin : true,
+    };
+
+    static readonly googleOAuthCallback: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.GoogleOAuthCallback`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.UpdateOne,
+        SignupOrSignin : true,
+    };
+
 }
