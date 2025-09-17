@@ -15,6 +15,7 @@ import {
     UserPasswordResetByOtpModel,
     UserPasswordResetSendPhoneOtpModel
 } from '../../../domain.types/users/user.password.reset.types';
+import { GitHubOAuthCallbackParams } from '../../../domain.types/users/github.oauth.types';
 import { OTPScope } from '../../../domain.types/users/user.enums';
 import { ErrorHandler } from '../../../common/handlers/error.handler';
 
@@ -299,6 +300,27 @@ export class UserAuthValidator {
             };
 
             return obj;
+        } catch (error) {
+            ErrorHandler.handleValidationError(error);
+        }
+    };
+
+    static githubOAuthCallback = async (request: express.Request)
+        : Promise<GitHubOAuthCallbackParams> => {
+        try {
+            const schema = Joi.object({
+                code  : Joi.string().required(),
+                state : Joi.string().optional()
+            });
+
+            await schema.validateAsync(request.query);
+
+            const params: GitHubOAuthCallbackParams = {
+                code  : request.query.code as string,
+                state : request.query.state as string
+            };
+
+            return params;
         } catch (error) {
             ErrorHandler.handleValidationError(error);
         }

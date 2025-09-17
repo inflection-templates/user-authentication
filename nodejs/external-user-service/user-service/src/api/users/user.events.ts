@@ -218,6 +218,23 @@ export class UserEvents {
         }
     }
 
+    static async onUserLoginWithOAuth(request: express.Request, user: UserDto) {
+        try {
+            if (!user) {
+                return;
+            }
+            if (user.Metadata?.IsTestUser) {
+                // Do not record test user events
+                return;
+            }
+            const eventName = AnalyticsEventType.UserLoginWithOauth;
+            const message = `User '${user.id}' logged in using OAuth.`;
+            UserEvents.logEvent(request, user, eventName, message);
+        } catch (error) {
+            logger.info(error?.message);
+        }
+    }
+
     private static logEvent(
         request: express.Request, user: UserDto, eventName: AnalyticsEventType, message: string) {
         const params = getCommonEventParams(request, user);

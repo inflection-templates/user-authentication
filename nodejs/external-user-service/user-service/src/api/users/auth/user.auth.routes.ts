@@ -30,6 +30,9 @@ export const register = (app: express.Application): void => {
     router.post('/logout', auth(AuthAuth.logout), controller.logout);
     router.post('/access-token/:refreshToken', auth(AuthAuth.rotateUserAccessToken), controller.rotateUserAccessToken);
 
+    router.get('/oauth/github/login', auth(AuthAuth.githubOAuthLogin), controller.githubOAuthLogin);
+    router.get('/oauth/github/callback', auth(AuthAuth.githubOAuthCallback), controller.githubOAuthCallback);
+
     app.use('/api/v1/auth', router);
 
 };

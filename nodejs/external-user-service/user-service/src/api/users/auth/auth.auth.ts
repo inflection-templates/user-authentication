@@ -153,4 +153,22 @@ export class AuthAuth {
         RequestType : RequestType.UpdateOne,
     };
 
+    static readonly githubOAuthLogin: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.GithubOAuthLogin`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.GetOne,
+        SignupOrSignin : true,
+    };
+
+    static readonly githubOAuthCallback: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.GithubOAuthCallback`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.UpdateOne,
+        SignupOrSignin : true,
+    };
+
 }

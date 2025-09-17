@@ -24,6 +24,10 @@ import { UserAuthService } from '../../../services/users/user.auth.service';
 import { UserPasswordChangeModel } from '../../../domain.types/users/user.password.change.types';
 import { UserDeviceDetailsService } from '../../../services/users/user.device.details.service';
 import { UserAccountActionResult, UserDto } from '../../../domain.types/users/user.types';
+import { GitHubOAuthCallbackParams, GitHubAccessTokenModel, GitHubUser, GitHubEmail } from '../../../domain.types/users/github.oauth.types';
+import { ConfigurationManager } from '../../../config/configuration.manager';
+import axios from 'axios';
+import { Helper } from '../../../common/helper';
 
 ////////////////////////////////////////////////////////////////
 
@@ -353,6 +357,152 @@ export class UserAuthController extends BaseController {
         }
     };
 
+    githubOAuthLogin = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const clientId = process.env.GITHUB_CLIENT_ID;
+            const baseUrl = process.env.BASE_URL;
+            const redirectUri = `${baseUrl}/api/v1/auth/oauth/github/callback`;
+            const state = Math.random().toString(36).substring(2, 15);
+            
+            if (!clientId) {
+                ResponseHandler.failure(request, response, 'GitHub OAuth not configured. Please set GITHUB_CLIENT_ID environment variable.', 500);
+                return;
+            }
+
+            if (!baseUrl) {
+                ResponseHandler.failure(request, response, 'BASE_URL environment variable is required.', 500);
+                return;
+            }
+
+            const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email&state=${state}`;
+            
+            ResponseHandler.success(request, response, 'GitHub OAuth URL generated', 200, {
+                authUrl: authUrl,
+                state: state
+            });
+
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
+    githubOAuthCallback = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const { code, state }: GitHubOAuthCallbackParams = await UserAuthValidator.githubOAuthCallback(request);
+
+            // Get GitHub OAuth configuration
+            const clientId = process.env.GITHUB_CLIENT_ID;
+            const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+            const redirectUri = process.env.GITHUB_REDIRECT_URI;
+
+            if (!clientId || !clientSecret) {
+                ResponseHandler.failure(request, response, 'GitHub OAuth configuration is missing', 500);
+                return;
+            }
+
+            // Exchange code for access token
+            const tokenUrl = `https://github.com/login/oauth/access_token?client_id=${clientId}&client_secret=${clientSecret}&code=${code}`;
+            
+            const tokenResponse = await axios.post(tokenUrl, '', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!tokenResponse.data || !tokenResponse.data.access_token) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve GitHub access token', 500);
+                return;
+            }
+
+            const githubAccessToken = tokenResponse.data.access_token;
+
+            // Get GitHub user information
+            const githubUser = await this.getGithubUser(githubAccessToken);
+            if (!githubUser) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve GitHub user information', 500);
+                return;
+            }
+
+            // Get user email
+            let userEmail = await this.getGithubUserEmail(githubAccessToken);
+            if (!userEmail) {
+                userEmail = githubUser.email;
+                if (!userEmail) {
+                    userEmail = `${githubUser.login}@github.oauth.user`;
+                }
+            }
+
+            // Check if user exists
+            const existingUser = await this._userService.getByEmail(null, userEmail);
+            
+            if (existingUser) {
+                // User exists, log them in
+                const loginResult = await this._service.loginWithOAuth(existingUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${existingUser.UserName} logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : existingUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, existingUser);
+                ResponseHandler.success(request, response, message, 200, data, true);
+            } else {
+                // Create new user
+                const nameTokens = githubUser.name?.split(' ') || [];
+                const firstName = nameTokens[0] || '';
+                const lastName = nameTokens.length > 1 ? nameTokens[1] : '';
+
+                // Get default tenant for user creation
+                const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
+                const tenantId = tenant?.id || null;
+
+                const createModel = {
+                    TenantId  : tenantId,
+                    FirstName : firstName,
+                    LastName  : lastName,
+                    Email     : userEmail,
+                    UserName  : githubUser.login,
+                    Password  : Helper.generatePassword(),
+                };
+
+                const createdUser = await this._userService.create(createModel);
+                if (!createdUser) {
+                    ResponseHandler.failure(request, response, 'Unable to create a new user', 500);
+                    return;
+                }
+
+                const loginResult = await this._service.loginWithOAuth(createdUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${createdUser.UserName} logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : createdUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, createdUser);
+                ResponseHandler.success(request, response, message, 200, data, true);
+            }
+
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
     private extract(user: UserDto, accessToken: string, refreshToken: string, result: UserLoginResult) {
         const isProfileComplete = user.FirstName &&
             user.LastName &&
@@ -370,6 +520,69 @@ export class UserAuthController extends BaseController {
             ExpiresAt         : result.ExpiresAt
         };
         return data;
+    }
+
+    private async getGithubUser(token: string): Promise<GitHubUser | null> {
+        try {
+            const apiUrl = 'https://api.github.com/user';
+            const response = await axios.get(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'User-Service-OAuth'
+                }
+            });
+
+            if (response.status === 200 && response.data) {
+                logger.info('GitHub User Response:');
+                logger.info(JSON.stringify(response.data, null, 2));
+                return response.data as GitHubUser;
+            }
+            
+            logger.info('GitHub User API Error:');
+            logger.info(`Status: ${response.status}`);
+            return null;
+
+        } catch (error) {
+            logger.info('Error fetching GitHub user:');
+            logger.info(error.message);
+            return null;
+        }
+    }
+
+    private async getGithubUserEmail(token: string): Promise<string | null> {
+        try {
+            const apiUrl = 'https://api.github.com/user/emails';
+            const response = await axios.get(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'User-Service-OAuth'
+                }
+            });
+
+            if (response.status === 200 && response.data) {
+                logger.info('GitHub Emails Response:');
+                logger.info(JSON.stringify(response.data, null, 2));
+                
+                const emails = response.data as GitHubEmail[];
+                
+                // Get the primary email or the first verified email
+                const primaryEmail = emails.find(e => e.primary)?.email;
+                const verifiedEmail = emails.find(e => e.verified)?.email;
+                
+                return primaryEmail || verifiedEmail || emails[0]?.email || null;
+            }
+            
+            logger.info('GitHub Emails API Error:');
+            logger.info(`Status: ${response.status}`);
+            return null;
+
+        } catch (error) {
+            logger.info('Error fetching GitHub user emails:');
+            logger.info(error.message);
+            return null;
+        }
     }
 
 }

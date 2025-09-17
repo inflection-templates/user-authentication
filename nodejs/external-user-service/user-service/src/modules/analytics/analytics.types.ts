@@ -70,6 +70,7 @@ export enum AnalyticsEventType {
     // User login session events
     UserLoginWithPassword = "user-login-with-password",
     UserLoginWithOtp      = "user-login-with-otp",
+    UserLoginWithOauth    = "user-login-with-oauth",
     UserGenerateOtp       = "user-generate-otp",
     UserLogout            = "user-logout",
 

@@ -8,7 +8,7 @@ import { JwtRsaTokenService } from '../../services/jwt.rsa.token.service';
 import { logger } from '../../logger/logger';
 
 const router = express.Router();
-const jwtService = new JwtRsaTokenService();
+const jwtService = JwtRsaTokenService.getInstance();
 
 /**
  * GET /.well-known/jwks.json
