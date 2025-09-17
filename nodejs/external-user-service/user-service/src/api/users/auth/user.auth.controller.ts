@@ -852,7 +852,7 @@ export class UserAuthController extends BaseController {
                 return;
             }
 
-            const authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=tweet.read%20users.read%20offline.access&state=${state}&code_challenge=challenge&code_challenge_method=plain`;
+            const authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=users.read%20tweet.read%20offline.access&state=${state}&code_challenge=challenge&code_challenge_method=plain`;
 
             ResponseHandler.success(request, response, 'Twitter OAuth URL generated', 200, {
                 authUrl: authUrl,
@@ -1044,18 +1044,34 @@ export class UserAuthController extends BaseController {
 
     private async getTwitterUser(accessToken: string): Promise<TwitterUser | null> {
         try {
-            const response = await axios.get('https://api.twitter.com/2/users/me?user.fields=id,name,username,email,profile_image_url,verified,description,location,url,created_at,public_metrics', {
+            // Try to get user info with email first
+            let response = await axios.get('https://api.twitter.com/2/users/me?user.fields=id,name,username,email,profile_image_url,verified,description,location,url,created_at,public_metrics', {
                 headers: {
-                    'Authorization': `Bearer ${accessToken}`
+                    'Authorization': `Bearer ${accessToken}`,
+                    'User-Agent': 'User-Service-OAuth'
                 }
+            }).catch(async (emailError) => {
+                console.log('Email access not available, trying without email:', emailError.response?.status);
+                // If email access fails, try without email field
+                return await axios.get('https://api.twitter.com/2/users/me?user.fields=id,name,username,profile_image_url,verified,description,location,url,created_at,public_metrics', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'User-Agent': 'User-Service-OAuth'
+                    }
+                });
             });
 
             if (response.status === 200 && response.data.data) {
+                console.log('Twitter User Response:', JSON.stringify(response.data, null, 2));
                 return response.data.data as TwitterUser;
             }
+            
+            console.log('Twitter API Error - Status:', response.status);
+            console.log('Twitter API Error - Data:', response.data);
             return null;
         } catch (error) {
-            console.error('Error fetching Twitter user:', error);
+            console.error('Error fetching Twitter user:', error.response?.data || error.message);
+            console.error('Twitter API Status:', error.response?.status);
             return null;
         }
     }
