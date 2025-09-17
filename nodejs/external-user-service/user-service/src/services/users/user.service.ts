@@ -38,6 +38,9 @@ export class UserService {
             return null;
         }
 
+        // Create default user metadata
+        await this._userMetadataRepo.createDefault(dto.id);
+
         dto = await this._userRepo.getById(dto.id);
         return dto;
     };

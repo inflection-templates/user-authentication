@@ -465,7 +465,11 @@ export class UserAuthController extends BaseController {
 
                 // Get default tenant for user creation
                 const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
-                const tenantId = tenant?.id || null;
+                if (!tenant) {
+                    ResponseHandler.failure(request, response, 'Default tenant not found. Please contact system administrator.', 500);
+                    return;
+                }
+                const tenantId = tenant.id;
 
                 const createModel = {
                     TenantId  : tenantId,
@@ -612,7 +616,11 @@ export class UserAuthController extends BaseController {
 
                 // Get default tenant for user creation
                 const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
-                const tenantId = tenant?.id || null;
+                if (!tenant) {
+                    ResponseHandler.failure(request, response, 'Default tenant not found. Please contact system administrator.', 500);
+                    return;
+                }
+                const tenantId = tenant.id;
 
                 const createModel = {
                     FirstName : firstName,
@@ -768,7 +776,11 @@ export class UserAuthController extends BaseController {
 
                 // Get default tenant for user creation
                 const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
-                const tenantId = tenant?.id || null;
+                if (!tenant) {
+                    ResponseHandler.failure(request, response, 'Default tenant not found. Please contact system administrator.', 500);
+                    return;
+                }
+                const tenantId = tenant.id;
 
                 const createModel = {
                     FirstName : firstName,
