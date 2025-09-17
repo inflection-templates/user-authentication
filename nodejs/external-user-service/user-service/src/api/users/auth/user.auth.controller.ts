@@ -27,6 +27,7 @@ import { UserAccountActionResult, UserDto } from '../../../domain.types/users/us
 import { GitHubOAuthCallbackParams, GitHubAccessTokenModel, GitHubUser, GitHubEmail } from '../../../domain.types/users/github.oauth.types';
 import { GoogleOAuthCallbackParams, GoogleAccessTokenModel, GoogleUser } from '../../../domain.types/users/google.oauth.types';
 import { FacebookOAuthCallbackParams, FacebookAccessTokenModel, FacebookUser } from '../../../domain.types/users/facebook.oauth.types';
+import { TwitterOAuthCallbackParams, TwitterAccessTokenModel, TwitterUser } from '../../../domain.types/users/twitter.oauth.types';
 import { ConfigurationManager } from '../../../config/configuration.manager';
 import axios from 'axios';
 import { Helper } from '../../../common/helper';
@@ -818,6 +819,231 @@ export class UserAuthController extends BaseController {
             return null;
         } catch (error) {
             console.error('Error fetching Facebook user:', error);
+            return null;
+        }
+    }
+
+    twitterOAuthLogin = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const clientId = process.env.TWITTER_CLIENT_ID;
+            const baseUrl = process.env.BASE_URL;
+            const redirectUri = `${baseUrl}/api/v1/auth/oauth/twitter/callback`;
+            const state = Math.random().toString(36).substring(2, 15);
+            
+            if (!clientId) {
+                ResponseHandler.failure(request, response, 'Twitter OAuth not configured. Please set TWITTER_CLIENT_ID environment variable.', 500);
+                return;
+            }
+
+            if (!baseUrl) {
+                ResponseHandler.failure(request, response, 'BASE_URL environment variable is required.', 500);
+                return;
+            }
+
+            const authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=tweet.read%20users.read%20offline.access&state=${state}&code_challenge=challenge&code_challenge_method=plain`;
+
+            ResponseHandler.success(request, response, 'Twitter OAuth URL generated', 200, {
+                authUrl: authUrl,
+                state: state
+            });
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
+    twitterOAuthCallback = async (request: express.Request, response: express.Response): Promise<void> => {
+        try {
+            const { code, state }: TwitterOAuthCallbackParams = await UserAuthValidator.twitterOAuthCallback(request);
+
+            const clientId = process.env.TWITTER_CLIENT_ID;
+            const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+            const baseUrl = process.env.BASE_URL;
+            const redirectUri = `${baseUrl}/api/v1/auth/oauth/twitter/callback`;
+
+            if (!clientId || !clientSecret) {
+                ResponseHandler.failure(request, response, 'Twitter OAuth not configured', 500);
+                return;
+            }
+
+            // Exchange code for access token
+            const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
+            const tokenResponse = await axios.post(tokenUrl, new URLSearchParams({
+                code: code,
+                grant_type: 'authorization_code',
+                client_id: clientId,
+                redirect_uri: redirectUri,
+                code_verifier: 'challenge'
+            }), {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
+                }
+            });
+
+            if (tokenResponse.status !== 200 || !tokenResponse.data.access_token) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve Twitter access token', 500);
+                return;
+            }
+
+            const tokenData: TwitterAccessTokenModel = tokenResponse.data;
+            const twitterAccessToken = tokenData.access_token;
+
+            // Get user information from Twitter
+            const twitterUser = await this.getTwitterUser(twitterAccessToken);
+            if (!twitterUser) {
+                ResponseHandler.failure(request, response, 'Unable to retrieve Twitter user information', 500);
+                return;
+            }
+
+            const userEmail = twitterUser.email;
+            if (!userEmail) {
+                // Twitter doesn't always provide email, create a placeholder
+                const placeholderEmail = `${twitterUser.username}@twitter.oauth.user`;
+                
+                // Check if user exists with this placeholder email
+                const existingUser = await this._userService.getByEmail(null, placeholderEmail);
+                
+                if (existingUser) {
+                    // User exists, log them in
+                    const loginResult = await this._service.loginWithOAuth(existingUser.id);
+                    if (!loginResult) {
+                        ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                        return;
+                    }
+
+                    const message = `User ${existingUser.UserName} logged in successfully!`;
+                    const data = {
+                        AccessToken  : loginResult.AccessToken,
+                        RefreshToken : loginResult.RefreshToken,
+                        User         : existingUser,
+                        SessionId    : loginResult.SessionId,
+                        ExpiresAt    : loginResult.ExpiresAt
+                    };
+
+                    UserEvents.onUserLoginWithOAuth(request, existingUser);
+                    ResponseHandler.success(request, response, message, 200, data, true);
+                    return;
+                } else {
+                    // Create new user with placeholder email
+                    const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
+                    const tenantId = tenant?.id || null;
+
+                    const createModel = {
+                        FirstName : twitterUser.name || '',
+                        LastName  : '',
+                        Email     : placeholderEmail,
+                        UserName  : twitterUser.username,
+                        Password  : Helper.generatePassword(),
+                        TenantId  : tenantId,
+                    };
+
+                    const newUser = await this._userService.create(createModel);
+                    if (!newUser) {
+                        ResponseHandler.failure(request, response, 'Unable to create user account', 500);
+                        return;
+                    }
+
+                    const loginResult = await this._service.loginWithOAuth(newUser.id);
+                    if (!loginResult) {
+                        ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                        return;
+                    }
+
+                    const message = `User ${newUser.UserName} created and logged in successfully!`;
+                    const data = {
+                        AccessToken  : loginResult.AccessToken,
+                        RefreshToken : loginResult.RefreshToken,
+                        User         : newUser,
+                        SessionId    : loginResult.SessionId,
+                        ExpiresAt    : loginResult.ExpiresAt
+                    };
+
+                    UserEvents.onUserLoginWithOAuth(request, newUser);
+                    ResponseHandler.success(request, response, message, 201, data, true);
+                    return;
+                }
+            }
+
+            // Check if user already exists with real email
+            const existingUser = await this._userService.getByEmail(null, userEmail);
+            
+            if (existingUser) {
+                // User exists, log them in
+                const loginResult = await this._service.loginWithOAuth(existingUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${existingUser.UserName} logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : existingUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, existingUser);
+                ResponseHandler.success(request, response, message, 200, data, true);
+            } else {
+                // Create new user
+                const tenant = await this._service['_tenantRepo'].getTenantWithCode('default');
+                const tenantId = tenant?.id || null;
+
+                const createModel = {
+                    FirstName : twitterUser.name || '',
+                    LastName  : '',
+                    Email     : userEmail,
+                    UserName  : twitterUser.username,
+                    Password  : Helper.generatePassword(),
+                    TenantId  : tenantId,
+                };
+
+                const newUser = await this._userService.create(createModel);
+                if (!newUser) {
+                    ResponseHandler.failure(request, response, 'Unable to create user account', 500);
+                    return;
+                }
+
+                // Log in the new user
+                const loginResult = await this._service.loginWithOAuth(newUser.id);
+                if (!loginResult) {
+                    ResponseHandler.failure(request, response, 'Session cannot be created', 500);
+                    return;
+                }
+
+                const message = `User ${newUser.UserName} created and logged in successfully!`;
+                const data = {
+                    AccessToken  : loginResult.AccessToken,
+                    RefreshToken : loginResult.RefreshToken,
+                    User         : newUser,
+                    SessionId    : loginResult.SessionId,
+                    ExpiresAt    : loginResult.ExpiresAt
+                };
+
+                UserEvents.onUserLoginWithOAuth(request, newUser);
+                ResponseHandler.success(request, response, message, 201, data, true);
+            }
+        } catch (error) {
+            ResponseHandler.handleError(request, response, error);
+        }
+    };
+
+    private async getTwitterUser(accessToken: string): Promise<TwitterUser | null> {
+        try {
+            const response = await axios.get('https://api.twitter.com/2/users/me?user.fields=id,name,username,email,profile_image_url,verified,description,location,url,created_at,public_metrics', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.status === 200 && response.data.data) {
+                return response.data.data as TwitterUser;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error fetching Twitter user:', error);
             return null;
         }
     }

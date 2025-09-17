@@ -207,4 +207,22 @@ export class AuthAuth {
         SignupOrSignin : true,
     };
 
+    static readonly twitterOAuthLogin: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.TwitterOAuthLogin`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.GetOne,
+        SignupOrSignin : true,
+    };
+
+    static readonly twitterOAuthCallback: UserAuthOptions = {
+        ...DefaultUserAuthOptions,
+        Context        : `${this._baseContext}.TwitterOAuthCallback`,
+        Ownership      : ResourceOwnership.System,
+        ActionScope    : ActionScope.Public,
+        RequestType    : RequestType.UpdateOne,
+        SignupOrSignin : true,
+    };
+
 }

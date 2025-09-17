@@ -38,6 +38,9 @@ export const register = (app: express.Application): void => {
     
     router.get('/oauth/facebook/login', auth(AuthAuth.facebookOAuthLogin), controller.facebookOAuthLogin);
     router.get('/oauth/facebook/callback', auth(AuthAuth.facebookOAuthCallback), controller.facebookOAuthCallback);
+    
+    router.get('/oauth/twitter/login', auth(AuthAuth.twitterOAuthLogin), controller.twitterOAuthLogin);
+    router.get('/oauth/twitter/callback', auth(AuthAuth.twitterOAuthCallback), controller.twitterOAuthCallback);
 
     app.use('/api/v1/auth', router);
 
