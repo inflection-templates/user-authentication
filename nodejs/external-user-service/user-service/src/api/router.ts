@@ -12,6 +12,7 @@ import { register as registerUserRoutes } from "./users/user/user.routes";
 import { register as registerTenantRoutes } from './tenant/tenants/tenant.routes';
 import { register as registerUserMetadataRoutes } from './users/metadata/user.metadata.routes';
 import { register as registerUserAuthRoutes } from './users/auth/user.auth.routes';
+import { register as registerOAuthRoutes } from './oauth/oauth.routes';
 import { wellKnownRoutes } from './wellknown/wellknown.routes';
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -40,6 +41,7 @@ export class Router {
                 
                 registerUserRoutes(this._app);
                 registerUserAuthRoutes(this._app);
+                registerOAuthRoutes(this._app);
                 registerRoleRoutes(this._app);
                 registerPermissionRoutes(this._app);
                 registerUserRoleRoutes(this._app);
