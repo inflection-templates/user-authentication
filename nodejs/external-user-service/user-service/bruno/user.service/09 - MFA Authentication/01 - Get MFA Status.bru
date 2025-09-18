@@ -1,0 +1,28 @@
+meta {
+  name: 01 - Get MFA Status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/users/mfa/status
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{USER_JWT}}
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has MFA status", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('enabled');
+    expect(jsonRes.Data).to.have.property('methods');
+  });
+}

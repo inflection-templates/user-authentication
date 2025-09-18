@@ -1,0 +1,47 @@
+meta {
+  name: 06 - Validate Backup Code
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URL}}/users/mfa/validate
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{USER_JWT}}
+}
+
+body:json {
+  {
+    "token": "ABCD1234",
+    "method": "backup"
+  }
+}
+
+docs {
+  # Backup Code Validation
+  
+  **Instructions:**
+  1. Use one of the backup codes provided during TOTP setup
+  2. Replace "ABCD1234" with an actual backup code
+  3. Run this request to validate the backup code
+  
+  **Note:** Each backup code can only be used once and will be invalidated after use.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Backup code validation successful", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('valid');
+    expect(jsonRes.Data.valid).to.equal(true);
+    expect(jsonRes.Data.method).to.equal('backup');
+  });
+}
