@@ -1,0 +1,9 @@
+{
+    "FirstName": "system-admin",
+    "PhoneNumber": "+91-1234567890",
+    "Email": "support@reanfoundation.org",
+    "UserName": "admin",
+    "Password": "<admin-password>",
+    "DefaultTimeZone": "+05:30",
+    "CurrentTimeZone": "+05:30"
+}

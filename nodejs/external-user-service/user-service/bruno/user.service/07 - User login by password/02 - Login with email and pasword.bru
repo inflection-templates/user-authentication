@@ -1,0 +1,34 @@
+meta {
+  name: 02 - Login with email and pasword
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/auth/login-with-email-password
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: {{API_CLIENT_INTERNAL_KEY}}
+}
+
+body:json {
+  {
+    "Email": "node1@gmail.com",
+    "Password": "Node@123"
+  }
+}
+
+tests {
+  try {
+      var jsonRes = res.getBody();
+      bru.setEnvVar("USER_JWT", jsonRes.Data.AccessToken);
+  }
+  catch (error) {
+      console.log(error.message);
+  }
+  
+}

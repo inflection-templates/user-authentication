@@ -1,0 +1,74 @@
+meta {
+  name: Twitter OAuth - Step 2 Test Callback
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/oauth/twitter
+  body: none
+  auth: none
+}
+
+params:query {
+  code: YOUR_REAL_TWITTER_CODE_HERE
+  state: YOUR_STATE_FROM_STEP_1_HERE
+}
+
+headers {
+  Content-Type: application/json
+}
+
+tests {
+  test("Should redirect to frontend (302 or 200)", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 302]);
+  });
+  
+  test("Log instructions for real testing", function() {
+    console.log("🐦 Twitter/X OAuth Callback Test Instructions:");
+    console.log("");
+    console.log("📋 To test with real Twitter OAuth code:");
+    console.log("1. Run 'Twitter OAuth - Step 1 Get Login URL' first");
+    console.log("2. Copy the authorization URL from the response");
+    console.log("3. Also save the 'code_verifier' and 'state' values");
+    console.log("4. Open the authorization URL in your browser");
+    console.log("5. Sign in with your Twitter/X account");
+    console.log("6. Authorize the application");
+    console.log("7. Copy the 'code' parameter from the callback URL");
+    console.log("8. Replace 'YOUR_REAL_TWITTER_CODE_HERE' with the real code");
+    console.log("9. Replace 'YOUR_STATE_FROM_STEP_1_HERE' with the state from Step 1");
+    console.log("10. Run this request again");
+    console.log("11. You should be redirected to frontend with authentication tokens");
+    console.log("");
+    console.log("🔐 Note: Twitter OAuth uses PKCE for enhanced security");
+    console.log("📧 Note: If email isn't available, username@twitter.oauth.user will be used");
+    console.log("");
+    console.log("✅ Expected Result:");
+    console.log("- Status: 302 (redirect) or 200 (success)");
+    console.log("- Redirect to: http://localhost:5000?success=true&token=...");
+    console.log("- New user account created (if first login)");
+    console.log("- JWT token generated for authentication");
+  });
+  
+  test("Log troubleshooting tips", function() {
+    console.log("🚨 Troubleshooting Tips:");
+    console.log("");
+    console.log("❌ If you get 'Twitter OAuth not configured':");
+    console.log("   → Check OAUTH_TWITTER_ENABLED=true");
+    console.log("   → Check OAUTH_TWITTER_CLIENT_ID is set");
+    console.log("   → Check OAUTH_TWITTER_CLIENT_SECRET is set");
+    console.log("");
+    console.log("❌ If you get 'Invalid redirect URI':");
+    console.log("   → Check Twitter App settings");
+    console.log("   → Ensure callback URL is: http://localhost:5000/api/v1/users/oauth/twitter");
+    console.log("");
+    console.log("❌ If you get 'Invalid code':");
+    console.log("   → OAuth codes expire quickly (usually 10 minutes)");
+    console.log("   → Get a fresh code from Step 1");
+    console.log("   → Ensure you're using the correct state parameter");
+    console.log("");
+    console.log("❌ If you get PKCE errors:");
+    console.log("   → This is handled automatically by the server");
+    console.log("   → Make sure you're using OAuth 2.0 credentials (not OAuth 1.0a)");
+  });
+}

@@ -1,0 +1,18 @@
+meta {
+  name: Download file
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/file-resources/download/{{FILE_RESOURCE_ID_PUBLIC}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}

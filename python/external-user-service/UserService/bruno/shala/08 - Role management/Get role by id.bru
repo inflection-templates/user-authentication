@@ -1,0 +1,18 @@
+meta {
+  name: Get role by id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/roles/{{ROLE_ID}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}

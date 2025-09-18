@@ -1,0 +1,15 @@
+shala.api/bin/
+shala.api/obj/
+
+shala.api.integration.tests/bin/
+shala.api.integration.tests/obj/
+shala.api/static.content/seed.data/system.admin.seed.json
+/.vs/shala
+.vs/ProjectEvaluation/
+
+shala.api/appsettings.local.json
+shala.api/appsettings.test.json
+
+shala.api/storage/
+
+

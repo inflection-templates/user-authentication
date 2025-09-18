@@ -1,0 +1,38 @@
+meta {
+  name: Google OAuth - Step 2 Test Callback
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/oauth/google
+  body: none
+  auth: none
+}
+
+params:query {
+  code: YOUR_REAL_GOOGLE_CODE_HERE
+  state: google_oauth_state
+}
+
+headers {
+  Content-Type: application/json
+}
+
+tests {
+  test("Should redirect to frontend (302 or 200)", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 302]);
+  });
+  
+  test("Log instructions for real testing", function() {
+    console.log("📋 To test with real Google OAuth code:");
+    console.log("1. Run 'Google OAuth - Step 1 Get Login URL'");
+    console.log("2. Copy the authorization URL from the response");
+    console.log("3. Open the URL in your browser");
+    console.log("4. Sign in with Google");
+    console.log("5. Copy the 'code' parameter from the callback URL");
+    console.log("6. Replace 'YOUR_REAL_GOOGLE_CODE_HERE' with the real code");
+    console.log("7. Run this request again");
+    console.log("8. You should be redirected to http://localhost:5000 with tokens");
+  });
+}

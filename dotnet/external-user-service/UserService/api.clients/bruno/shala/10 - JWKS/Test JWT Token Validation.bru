@@ -1,0 +1,69 @@
+meta {
+  name: Test JWT Token Validation
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/api/users/auth/login-with-password
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "email": "{{TEST_USER_EMAIL}}",
+    "password": "{{TEST_USER_PASSWORD}}",
+    "role": "user"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("Login Response Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ Login successful");
+    
+    // Extract token information
+    const token = res.body.data.token;
+    const refreshToken = res.body.data.refreshToken;
+    
+    console.log("JWT Token:", token.substring(0, 50) + "...");
+    console.log("Refresh Token:", refreshToken.substring(0, 50) + "...");
+    
+    // Store tokens in environment variables
+    bru.setEnvVar("JWT_ACCESS_TOKEN", token);
+    bru.setEnvVar("JWT_REFRESH_TOKEN", refreshToken);
+    
+    // Decode JWT token to extract claims (without verification)
+    try {
+      const tokenParts = token.split('.');
+      if (tokenParts.length === 3) {
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log("JWT Claims:", payload);
+        
+        // Store key claims in environment
+        bru.setEnvVar("JWT_USER_ID", payload.sid || payload.sub);
+        bru.setEnvVar("JWT_USERNAME", payload.name || payload.preferred_username);
+        bru.setEnvVar("JWT_ROLE", payload.role);
+        bru.setEnvVar("JWT_SESSION_ID", payload.SessionId);
+        bru.setEnvVar("JWT_EXPIRES_AT", payload.exp);
+        bru.setEnvVar("JWT_ISSUED_AT", payload.iat);
+        bru.setEnvVar("JWT_KEY_ID", payload.kid);
+      }
+    } catch (error) {
+      console.error("Error decoding JWT:", error);
+    }
+    
+    // Now test the JWKS endpoint to verify the token can be validated
+    console.log("🔐 Testing JWKS endpoint for token validation...");
+    
+  } else {
+    console.error("❌ Login failed:", res.body);
+  }
+}

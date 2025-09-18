@@ -1,0 +1,35 @@
+meta {
+  name: 02 - Login with phone and pasword
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/auth/login-with-phone-password
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: {{API_CLIENT_INTERNAL_KEY}}
+}
+
+body:json {
+  {
+    "PhoneCode": "+91",
+    "PhoneNumber": "917072589996",
+    "Password": "Test@123"
+  }
+}
+
+tests {
+  try {
+      var jsonRes = res.getBody();
+      bru.setEnvVar("USER_JWT", jsonRes.Data.AccessToken);
+  }
+  catch (error) {
+      console.log(error.message);
+  }
+  
+}

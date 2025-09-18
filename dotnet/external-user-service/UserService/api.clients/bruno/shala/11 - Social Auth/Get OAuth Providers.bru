@@ -1,0 +1,45 @@
+meta {
+  name: Get OAuth Providers
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/oauth/providers
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct structure", function() {
+    expect(res.getBody()).to.have.property('success');
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('data');
+    expect(res.getBody().success).to.be.true;
+    expect(res.getBody().message).to.equal("Providers fetched successfully");
+  });
+  
+  test("Response contains list of providers", function() {
+    expect(res.getBody().data).to.be.an('array');
+    expect(res.getBody().data).to.include('Google');
+    expect(res.getBody().data).to.include('GitHub');
+    expect(res.getBody().data).to.include('GitLab');
+  });
+  
+  test("Log available OAuth providers", function() {
+    const providers = res.getBody().data;
+    console.log("🔐 Available OAuth Providers:");
+    providers.forEach(provider => {
+      console.log(`  - ${provider}`);
+    });
+    console.log("📋 Use the individual provider requests to test OAuth flows");
+  });
+}
