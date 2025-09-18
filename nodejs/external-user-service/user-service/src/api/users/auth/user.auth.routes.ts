@@ -30,6 +30,18 @@ export const register = (app: express.Application): void => {
     router.post('/logout', auth(AuthAuth.logout), controller.logout);
     router.post('/access-token/:refreshToken', auth(AuthAuth.rotateUserAccessToken), controller.rotateUserAccessToken);
 
+    router.get('/oauth/github/login', auth(AuthAuth.githubOAuthLogin), controller.githubOAuthLogin);
+    router.get('/oauth/github/callback', auth(AuthAuth.githubOAuthCallback), controller.githubOAuthCallback);
+    
+    router.get('/oauth/google/login', auth(AuthAuth.googleOAuthLogin), controller.googleOAuthLogin);
+    router.get('/oauth/google/callback', auth(AuthAuth.googleOAuthCallback), controller.googleOAuthCallback);
+    
+    router.get('/oauth/facebook/login', auth(AuthAuth.facebookOAuthLogin), controller.facebookOAuthLogin);
+    router.get('/oauth/facebook/callback', auth(AuthAuth.facebookOAuthCallback), controller.facebookOAuthCallback);
+    
+    router.get('/oauth/twitter/login', auth(AuthAuth.twitterOAuthLogin), controller.twitterOAuthLogin);
+    router.get('/oauth/twitter/callback', auth(AuthAuth.twitterOAuthCallback), controller.twitterOAuthCallback);
+
     app.use('/api/v1/auth', router);
 
 };

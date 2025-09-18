@@ -1,0 +1,38 @@
+meta {
+  name: Test Full Auth Flow
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/customers
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwt_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+  res.body.data: isArray
+}
+
+script:post-response {
+  if (res.status === 200) {
+    console.log("✅ Authentication successful!");
+    console.log("🎉 OrderService is working with User Service JWT token!");
+    console.log("📊 Retrieved", res.body.data.length, "customers");
+  } else if (res.status === 401) {
+    console.log("❌ Authentication failed");
+    console.log("💡 Make sure you:");
+    console.log("   1. Started Python User Service on port 5000");
+    console.log("   2. Got a fresh JWT token using 'Login to User Service'");
+    console.log("   3. The token has 'kid' in header (RSA signed)");
+  }
+}

@@ -1,0 +1,31 @@
+meta {
+  name: Facebook OAuth Login
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/auth/oauth/facebook/login
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: 200
+  res.body.Success: true
+  res.body.Data.authUrl: isString
+}
+
+tests {
+  test("Should return Facebook authorization URL", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.Success).to.be.true;
+    expect(res.body.Data).to.have.property('authUrl');
+    expect(res.body.Data.authUrl).to.include('www.facebook.com/v18.0/dialog/oauth');
+    expect(res.body.Data.authUrl).to.include('client_id=');
+    expect(res.body.Data.authUrl).to.include('redirect_uri=');
+    expect(res.body.Data.authUrl).to.include('scope=email,public_profile');
+    expect(res.body.Data.authUrl).to.include('response_type=code');
+    expect(res.body.Data.authUrl).to.include('state=');
+  });
+}

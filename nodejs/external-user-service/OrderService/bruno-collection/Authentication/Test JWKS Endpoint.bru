@@ -1,0 +1,36 @@
+meta {
+  name: Test JWKS Endpoint
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{user_service_url}}/.well-known/jwks.json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+assert {
+  res.status: eq 200
+  res.body.keys: isArray
+  res.body.keys[0].kty: eq "RSA"
+  res.body.keys[0].kid: isDefined
+  res.body.keys[0].alg: eq "RS256"
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.keys && res.body.keys.length > 0) {
+    const key = res.body.keys[0];
+    console.log("✅ JWKS endpoint working!");
+    console.log("🔑 Key ID (kid):", key.kid);
+    console.log("🔐 Algorithm:", key.alg);
+    console.log("📋 Key Type:", key.kty);
+    console.log("🎯 This proves Node.js User Service now supports RSA JWT tokens!");
+  } else {
+    console.log("❌ JWKS endpoint failed");
+    console.log("🔧 Check if User Service is running and JWKS routes are configured");
+  }
+}

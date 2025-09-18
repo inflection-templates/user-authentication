@@ -37,14 +37,8 @@ async def configure_services(app: FastAPI):
         "oauth": {
             "google": {
                 "enabled": os.getenv("OAUTH_GOOGLE_ENABLED", "false").lower() == "true",
-                "client_id": os.getenv("OAUTH_GOOGLE_CLIENT_ID", "your_google_client_id_here"),
-                "client_secret": os.getenv("OAUTH_GOOGLE_CLIENT_SECRET", "your_google_client_secret_here"),
-                "callback_url": os.getenv("OAUTH_GOOGLE_CALLBACK_URL", "http://localhost:5000/api/v1/users/oauth/google"),
-                "frontend_redirect_url": os.getenv("OAUTH_GOOGLE_FRONTEND_REDIRECT_URL", "http://localhost:5000"),
-                "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
-                "token_url": "https://oauth2.googleapis.com/token",
-                "user_info_url": "https://www.googleapis.com/oauth2/v2/userinfo",
-                "scope": "openid email profile"
+                "client_id": os.getenv("OAUTH_GOOGLE_CLIENT_ID", ""),
+                "client_secret": os.getenv("OAUTH_GOOGLE_CLIENT_SECRET", "")
             },
             "facebook": {
                 "enabled": os.getenv("OAUTH_FACEBOOK_ENABLED", "false").lower() == "true",
@@ -57,27 +51,9 @@ async def configure_services(app: FastAPI):
                 "client_secret": os.getenv("OAUTH_MICROSOFT_CLIENT_SECRET", "")
             },
             "github": {
-                "enabled": os.getenv("OAUTH_GITHUB_ENABLED", "true").lower() == "true",
-                "client_id": os.getenv("OAUTH_GITHUB_CLIENT_ID", "your_github_client_id_here"),
-                "client_secret": os.getenv("OAUTH_GITHUB_CLIENT_SECRET", "your_github_client_secret_here"),
-                "callback_url": os.getenv("OAUTH_GITHUB_CALLBACK_URL", "http://localhost:5000/api/v1/users/oauth/github"),
-                "frontend_redirect_url": os.getenv("OAUTH_GITHUB_FRONTEND_REDIRECT_URL", "http://localhost:5000"),
-                "auth_url": "https://github.com/login/oauth/authorize",
-                "token_url": "https://github.com/login/oauth/access_token",
-                "user_info_url": "https://api.github.com/user",
-                "user_emails_url": "https://api.github.com/user/emails",
-                "scope": "user:email"
-            },
-            "twitter": {
-                "enabled": os.getenv("OAUTH_TWITTER_ENABLED", "false").lower() == "true",
-                "client_id": os.getenv("OAUTH_TWITTER_CLIENT_ID", "your_twitter_client_id_here"),
-                "client_secret": os.getenv("OAUTH_TWITTER_CLIENT_SECRET", "your_twitter_client_secret_here"),
-                "callback_url": os.getenv("OAUTH_TWITTER_CALLBACK_URL", "http://localhost:5000/api/v1/users/oauth/twitter"),
-                "frontend_redirect_url": os.getenv("OAUTH_TWITTER_FRONTEND_REDIRECT_URL", "http://localhost:5000"),
-                "auth_url": "https://twitter.com/i/oauth2/authorize",
-                "token_url": "https://api.twitter.com/2/oauth2/token",
-                "user_info_url": "https://api.twitter.com/2/users/me",
-                "scope": "tweet.read users.read offline.access"
+                "enabled": os.getenv("OAUTH_GITHUB_ENABLED", "false").lower() == "true",
+                "client_id": os.getenv("OAUTH_GITHUB_CLIENT_ID", ""),
+                "client_secret": os.getenv("OAUTH_GITHUB_CLIENT_SECRET", "")
             }
         },
         "cache": {

@@ -250,6 +250,44 @@ export class UserAuthService {
         return await this.otpLogin(user, tenant, model.Otp);
     };
 
+    public loginWithOAuth = async (userId: uuid): Promise<UserLoginResult> => {
+        const user = await this._userRepo.getById(userId);
+        if (!user) {
+            throw new ApiError(404, 'User not found.');
+        }
+
+        let tenant;
+        let tenantId = user.Tenant?.id;
+        
+        // If no tenant provided, use default tenant
+        if (!tenantId) {
+            tenant = await this._tenantRepo.getTenantWithCode('default');
+            
+            // If no tenant with code 'default', use the first available tenant
+            if (!tenant) {
+                const allTenants = await this._tenantRepo.search({ 
+                    PageIndex: 0, 
+                    ItemsPerPage: 1 
+                });
+                if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
+                    tenant = allTenants.Items[0];
+                }
+            }
+            
+            if (!tenant) {
+                throw new ApiError(404, 'No tenant found for authentication.');
+            }
+            tenantId = tenant.id;
+        } else {
+            tenant = await this._tenantRepo.getById(tenantId);
+            if (!tenant) {
+                throw new ApiError(404, 'Tenant not found.');
+            }
+        }
+
+        return await this.oauthLogin(user, tenant);
+    };
+
     public generateEmailOtp = async (model: EmailOtpCreateModel): Promise<UserAccountActionResult> => {
         let tenant;
         let tenantId = model.TenantId;
@@ -598,7 +636,12 @@ export class UserAuthService {
         return await this.processSuccessfullLogin(user, tenant, isTestUser);
     }
 
-    private async processSuccessfullLogin(user: UserDto, tenant: TenantDto, isTestUser: boolean) {
+    private async oauthLogin(user: UserDto, tenant: TenantDto) {
+        const isTestUser = await this._userMetadataRepo.isTestUser(user.id);
+        return await this.processSuccessfullLogin(user, tenant, isTestUser, UserLoginMethod.Oauth);
+    }
+
+    private async processSuccessfullLogin(user: UserDto, tenant: TenantDto, isTestUser: boolean, loginMethod?: UserLoginMethod) {
 
         await this._userMetadataRepo.updateLastLogin(user.id, new Date());
 
@@ -608,7 +651,7 @@ export class UserAuthService {
 
         var entity: UserSessionCreateModel = {
             UserId      : user.id,
-            LoginMethod : UserLoginMethod.EmailPassword,
+            LoginMethod : loginMethod || UserLoginMethod.EmailPassword,
             StartedAt   : new Date(),
             ValidTill   : expiresAt,
             TenantId    : tenant.id,

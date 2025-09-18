@@ -1,0 +1,46 @@
+meta {
+  name: Update Product
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/api/products/:productId
+  body: json
+}
+
+params:path {
+  productId: {{product_id}}
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Gaming Keyboard Pro",
+    "description": "Professional mechanical gaming keyboard with RGB lighting and macro keys",
+    "price": 129.99,
+    "sku": "KB001",
+    "stock_quantity": 30,
+    "category": "Electronics",
+    "is_active": true
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+tests {
+  test("Update product returns success", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().success).to.equal(true);
+    expect(res.getBody().product).to.be.an('object');
+    expect(res.getBody().product.name).to.equal("Gaming Keyboard Pro");
+    expect(res.getBody().product.price).to.equal(129.99);
+  });
+}

@@ -11,12 +11,14 @@ import { Injector } from '../../../startup/injector';
 import { uuid } from '../../../domain.types/miscellaneous/system.types';
 import { RoleService } from '../../../services/authorization/role.service';
 import { UserAuthService } from '../../../services/users/user.auth.service';
+import { JwtRsaTokenService } from '../../../services/jwt.rsa.token.service';
 
 /////////////////////////////////////////////////////////////////////////////////
 
 export class CustomUserAuthenticator implements IUserAuthenticator {
 
     _userService: UserService = null;
+    _jwtRsaService: JwtRsaTokenService = null;
 
     _userAuthService: UserAuthService = null;
 
@@ -29,6 +31,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
         this._userAuthService = Injector.Container.resolve(UserAuthService);
         this._tenantService = Injector.Container.resolve(TenantService);
         this._roleService = Injector.Container.resolve(RoleService);
+                this._jwtRsaService = JwtRsaTokenService.getInstance();
     }
 
     public authenticate = async (
@@ -209,11 +212,13 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
     public generateUserSessionToken = async (user: CurrentUser): Promise<string> => {
         return new Promise((resolve, reject) => {
             try {
-                const expiresIn: number = ConfigurationManager.AccessTokenExpiresInSeconds;
-                var seconds = expiresIn.toString() + 's';
-                const token = jwt.sign(user, process.env.USER_ACCESS_TOKEN_SECRET, { expiresIn: seconds });
+                // Use RSA JWT service instead of HMAC (like Python/C# implementations)
+                const sessionId = user.SessionId || 'default-session';
+                const role = user.Roles && user.Roles.length > 0 ? user.Roles[0].Name : undefined;
+                const token = this._jwtRsaService.generateToken(user, sessionId, role);
                 resolve(token);
             } catch (error) {
+                logger.error(`Error generating RSA JWT token: ${error.message}`);
                 reject(error);
             }
         });

@@ -1,0 +1,38 @@
+meta {
+  name: Get Order by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/orders/:orderId
+}
+
+params:path {
+  orderId: {{order_id}}
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+vars {
+  order_id: 1
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+tests {
+  test("Get order by ID returns success", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().success).to.equal(true);
+    expect(res.getBody().order).to.be.an('object');
+    expect(res.getBody().order.id).to.exist;
+    expect(res.getBody().order.customer).to.be.an('object');
+    expect(res.getBody().order.order_items).to.be.an('array');
+  });
+}
