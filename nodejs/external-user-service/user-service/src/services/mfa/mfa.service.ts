@@ -1,3 +1,4 @@
+import { injectable, inject } from 'tsyringe';
 import { logger } from '../../logger/logger';
 import { TotpService, TotpSecret, TotpValidationResult } from './totp.service';
 import { UserDto } from '../../domain.types/users/user.types';
@@ -5,7 +6,6 @@ import { OTPScope, OTPChannel } from '../../domain.types/users/user.enums';
 import { uuid } from '../../domain.types/miscellaneous/system.types';
 import { ConfigurationManager } from '../../config/configuration.manager';
 import { ApiError } from '../../common/api.error';
-import { Injector } from '../../startup/injector';
 
 export interface MfaSetupResult {
     success: boolean;
@@ -26,13 +26,12 @@ export interface MfaStatus {
     backupCodesRemaining?: number;
 }
 
+@injectable()
 export class MfaService {
 
-    private _totpService: TotpService;
-
-    constructor() {
-        this._totpService = new TotpService();
-    }
+    constructor(
+        @inject('TotpService') private _totpService: TotpService
+    ) {}
 
     /**
      * Setup MFA for a user (TOTP)

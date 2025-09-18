@@ -1,5 +1,6 @@
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
+import { injectable } from 'tsyringe';
 import { logger } from '../../logger/logger';
 import { ConfigurationManager } from '../../config/configuration.manager';
 
@@ -16,6 +17,7 @@ export interface TotpValidationResult {
     window?: number;
 }
 
+@injectable()
 export class TotpService {
 
     /**
