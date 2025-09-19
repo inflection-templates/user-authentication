@@ -29,6 +29,10 @@ export interface MfaStatus {
 @injectable()
 export class MfaService {
 
+    // Temporary storage for TOTP secrets during setup (use Redis/database in production)
+    private static tempSecrets = new Map<string, { secret: string, timestamp: number }>();
+    private static readonly TEMP_SECRET_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
     constructor(
         @inject('TotpService') private _totpService: TotpService
     ) {}
@@ -64,6 +68,8 @@ export class MfaService {
 
             // Store the secret temporarily (user needs to verify before enabling)
             await this.storeTempTotpSecret(userId, totpSecret.secret);
+            
+            logger.info(`TOTP secret generated for user: ${userIdentifier}`);
 
             logger.info(`TOTP setup initiated for user: ${userId}`);
 
@@ -88,11 +94,19 @@ export class MfaService {
      */
     public async verifyAndEnableTotp(userId: uuid, token: string): Promise<MfaSetupResult> {
         try {
+            logger.info(`Attempting TOTP verification for user: ${userId} with token: ${token}`);
+            
             // Get temporary TOTP secret
             const tempSecret = await this.getTempTotpSecret(userId);
             if (!tempSecret) {
-                throw new ApiError(400, 'No TOTP setup found. Please initiate setup first.');
+                logger.warn(`TOTP verification failed - no temp secret found for user: ${userId}`);
+                return {
+                    success: false,
+                    message: 'No active TOTP setup found. Please initiate setup first or your setup may have expired (5 minutes).'
+                };
             }
+            
+            logger.info(`Found temporary TOTP secret for user: ${userId}, attempting verification`);
 
             // Verify the token
             const validation = this._totpService.verifyToken(token, tempSecret);
@@ -329,20 +343,50 @@ export class MfaService {
 
     // These methods need to be implemented based on your database schema
     private async storeTempTotpSecret(userId: uuid, secret: string): Promise<void> {
-        // Implementation depends on your database schema
-        // You might store this in a temporary table or cache
+        // Store with timestamp for expiry
+        MfaService.tempSecrets.set(userId, {
+            secret: secret,
+            timestamp: Date.now()
+        });
+        
+        // Clean up expired secrets
+        this.cleanupExpiredSecrets();
+        
         logger.info(`Storing temporary TOTP secret for user: ${userId}`);
     }
 
     private async getTempTotpSecret(userId: uuid): Promise<string | null> {
-        // Implementation depends on your database schema
         logger.info(`Getting temporary TOTP secret for user: ${userId}`);
-        return null; // Placeholder
+        
+        const stored = MfaService.tempSecrets.get(userId);
+        if (!stored) {
+            logger.warn(`No temporary TOTP secret found for user: ${userId}`);
+            return null;
+        }
+
+        // Check if expired
+        if (Date.now() - stored.timestamp > MfaService.TEMP_SECRET_EXPIRY) {
+            logger.warn(`Temporary TOTP secret expired for user: ${userId}`);
+            MfaService.tempSecrets.delete(userId);
+            return null;
+        }
+
+        return stored.secret;
     }
 
     private async clearTempTotpSecret(userId: uuid): Promise<void> {
-        // Implementation depends on your database schema
+        MfaService.tempSecrets.delete(userId);
         logger.info(`Clearing temporary TOTP secret for user: ${userId}`);
+    }
+
+    private cleanupExpiredSecrets(): void {
+        const now = Date.now();
+        for (const [userId, data] of MfaService.tempSecrets.entries()) {
+            if (now - data.timestamp > MfaService.TEMP_SECRET_EXPIRY) {
+                MfaService.tempSecrets.delete(userId);
+                logger.info(`Cleaned up expired TOTP secret for user: ${userId}`);
+            }
+        }
     }
 
     private async enableTotpForUser(userId: uuid, secret: string): Promise<void> {

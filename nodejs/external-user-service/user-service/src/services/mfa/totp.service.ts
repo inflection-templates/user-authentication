@@ -68,13 +68,20 @@ export class TotpService {
      */
     public verifyToken(token: string, secret: string, window: number = 2): TotpValidationResult {
         try {
+            logger.info(`Verifying TOTP token: ${token} with secret: ${secret.substring(0, 8)}... window: ${window}`);
+            
+            const currentTime = Math.floor(Date.now() / 1000);
+            logger.info(`Current time for TOTP verification: ${currentTime}`);
+            
             const verified = speakeasy.totp.verify({
                 secret: secret,
                 encoding: 'base32',
                 token: token,
                 window: window,
-                time: Math.floor(Date.now() / 1000)
+                time: currentTime
             });
+
+            logger.info(`TOTP verification result: ${verified} for token: ${token}`);
 
             return {
                 valid: verified,
