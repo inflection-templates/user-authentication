@@ -1,0 +1,116 @@
+meta {
+  name: Update user profile
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{BASE_URL}}/users/{{USER_ID}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{USER_JWT}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "FirstName": "{{UPDATED_FIRST_NAME}}",
+    "LastName": "{{UPDATED_LAST_NAME}}",
+    "Email": "{{UPDATED_EMAIL}}",
+    "PhoneCode": "{{UPDATED_PHONE_CODE}}",
+    "PhoneNumber": "{{UPDATED_PHONE_NUMBER}}",
+    "UserName": "{{UPDATED_USERNAME}}",
+    "DefaultTimeZone": "{{UPDATED_DEFAULT_TIMEZONE}}",
+    "CurrentTimeZone": "{{UPDATED_CURRENT_TIMEZONE}}",
+    "PreferredLanguage": "{{UPDATED_PREFERRED_LANGUAGE}}",
+    "Gender": "{{UPDATED_GENDER}}",
+    "DateOfBirth": "{{UPDATED_DATE_OF_BIRTH}}",
+    "ProfileImageUrl": "{{UPDATED_PROFILE_IMAGE_URL}}"
+  }
+}
+
+script:pre-request {
+  // Set default updated values for testing
+  bru.setEnvVar("UPDATED_FIRST_NAME", "John");
+  bru.setEnvVar("UPDATED_LAST_NAME", "Doe");
+  bru.setEnvVar("UPDATED_EMAIL", "john.doe.updated@example.com");
+  bru.setEnvVar("UPDATED_PHONE_CODE", "+1");
+  bru.setEnvVar("UPDATED_PHONE_NUMBER", "5551234567");
+  bru.setEnvVar("UPDATED_USERNAME", "johndoe_updated");
+  bru.setEnvVar("UPDATED_DEFAULT_TIMEZONE", "+00:00");
+  bru.setEnvVar("UPDATED_CURRENT_TIMEZONE", "+00:00");
+  bru.setEnvVar("UPDATED_PREFERRED_LANGUAGE", "en-US");
+  bru.setEnvVar("UPDATED_GENDER", "Male");
+  bru.setEnvVar("UPDATED_DATE_OF_BIRTH", "1990-01-01");
+  bru.setEnvVar("UPDATED_PROFILE_IMAGE_URL", "https://example.com/profile.jpg");
+}
+
+tests {
+  test("Request is successful", function () {
+    expect(res.getStatus()).to.equal(200);
+    var jsonRes = res.getBody();
+    expect(jsonRes.Status).to.eql('success');
+  });
+
+  test("Updated user data is returned", function () {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('user');
+    expect(jsonRes.Data.user).to.not.be.empty;
+    expect(jsonRes.Data.user).to.have.property('id');
+    expect(jsonRes.Data.user.id).to.equal(bru.getEnvVar("USER_ID"));
+  });
+
+  test("User profile fields are updated", function () {
+    var jsonRes = res.getBody();
+    var user = jsonRes.Data.user;
+    var person = user.Person;
+    
+    // Verify updated fields
+    expect(person.FirstName).to.equal(bru.getEnvVar("UPDATED_FIRST_NAME"));
+    expect(person.LastName).to.equal(bru.getEnvVar("UPDATED_LAST_NAME"));
+    expect(user.Email).to.equal(bru.getEnvVar("UPDATED_EMAIL"));
+    expect(user.UserName).to.equal(bru.getEnvVar("UPDATED_USERNAME"));
+  });
+
+  test("User has all required fields after update", function () {
+    var jsonRes = res.getBody();
+    var user = jsonRes.Data.user;
+    expect(user).to.have.property('id');
+    expect(user).to.have.property('UserName');
+    expect(user).to.have.property('Email');
+    expect(user).to.have.property('Person');
+    expect(user).to.have.property('Tenant');
+    expect(user).to.have.property('UpdatedAt');
+  });
+
+  // Store updated user data for subsequent tests
+  try {
+    var jsonRes = res.getBody();
+    bru.setEnvVar("UPDATED_USER_ID", jsonRes.Data.user.id);
+    bru.setEnvVar("UPDATED_USER_EMAIL", jsonRes.Data.user.Email);
+    bru.setEnvVar("UPDATED_USER_NAME", jsonRes.Data.user.UserName);
+  }
+  catch (error) {
+    console.log("Error storing updated user data:", error.message);
+  }
+}
+
+docs {
+  Updates a user's profile information by their ID. The user ID should be set in the environment variable USER_ID.
+  
+  This endpoint allows updating:
+  - Personal information (FirstName, LastName, Gender, DateOfBirth)
+  - Contact information (Email, PhoneCode, PhoneNumber)
+  - User preferences (UserName, DefaultTimeZone, CurrentTimeZone, PreferredLanguage)
+  - Profile image URL
+  
+  Requirements:
+  - Valid JWT token in Authorization header
+  - User ID in the URL path
+  - JSON body with fields to update
+  
+  Note: Only provided fields will be updated. Omitted fields will retain their current values.
+}

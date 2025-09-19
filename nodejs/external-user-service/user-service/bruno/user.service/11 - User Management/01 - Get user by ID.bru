@@ -1,0 +1,53 @@
+meta {
+  name: Get user by ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/users/{{USER_ID}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{USER_JWT}}
+  Content-Type: application/json
+}
+
+tests {
+  test("Request is successful", function () {
+    expect(res.getStatus()).to.equal(200);
+    var jsonRes = res.getBody();
+    expect(jsonRes.Status).to.eql('success');
+  });
+
+  test("User data is returned", function () {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('user');
+    expect(jsonRes.Data.user).to.not.be.empty;
+    expect(jsonRes.Data.user).to.have.property('id');
+    expect(jsonRes.Data.user).to.have.property('Email');
+    expect(jsonRes.Data.user.id).to.equal(bru.getEnvVar("USER_ID"));
+  });
+
+  test("User has required fields", function () {
+    var jsonRes = res.getBody();
+    var user = jsonRes.Data.user;
+    expect(user).to.have.property('id');
+    expect(user).to.have.property('UserName');
+    expect(user).to.have.property('Email');
+    expect(user).to.have.property('Person');
+    expect(user).to.have.property('Tenant');
+  });
+}
+
+docs {
+  Retrieves a user by their ID. The user ID should be set in the environment variable USER_ID.
+  
+  This endpoint requires:
+  - Valid JWT token in Authorization header
+  - User ID in the URL path
+  
+  Returns the complete user profile including personal information and tenant details.
+}

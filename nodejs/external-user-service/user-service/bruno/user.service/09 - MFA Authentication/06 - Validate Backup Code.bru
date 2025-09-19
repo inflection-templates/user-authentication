@@ -17,20 +17,9 @@ headers {
 
 body:json {
   {
-    "token": "ABCD1234",
+    "token": "0ADGZOH1",
     "method": "backup"
   }
-}
-
-docs {
-  # Backup Code Validation
-  
-  **Instructions:**
-  1. Use one of the backup codes provided during TOTP setup
-  2. Replace "ABCD1234" with an actual backup code
-  3. Run this request to validate the backup code
-  
-  **Note:** Each backup code can only be used once and will be invalidated after use.
 }
 
 tests {
@@ -44,4 +33,15 @@ tests {
     expect(jsonRes.Data.valid).to.equal(true);
     expect(jsonRes.Data.method).to.equal('backup');
   });
+}
+
+docs {
+  # Backup Code Validation
+  
+  **Instructions:**
+  1. Use one of the backup codes provided during TOTP setup
+  2. Replace "ABCD1234" with an actual backup code
+  3. Run this request to validate the backup code
+  
+  **Note:** Each backup code can only be used once and will be invalidated after use.
 }

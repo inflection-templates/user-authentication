@@ -17,9 +17,22 @@ headers {
 
 body:json {
   {
-    "token": "123456",
+    "token": "851903",
     "method": "totp"
   }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("TOTP validation successful", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('valid');
+    expect(jsonRes.Data.valid).to.equal(true);
+    expect(jsonRes.Data.method).to.equal('totp');
+  });
 }
 
 docs {
@@ -34,17 +47,4 @@ docs {
   **Methods:**
   - "totp" - Validate time-based OTP token
   - "backup" - Validate backup recovery code
-}
-
-tests {
-  test("Status is 200", function() {
-    expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("TOTP validation successful", function() {
-    var jsonRes = res.getBody();
-    expect(jsonRes.Data).to.have.property('valid');
-    expect(jsonRes.Data.valid).to.equal(true);
-    expect(jsonRes.Data.method).to.equal('totp');
-  });
 }
