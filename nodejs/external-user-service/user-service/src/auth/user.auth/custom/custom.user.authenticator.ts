@@ -83,9 +83,9 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 return res;
             }
 
-            // synchronous verification
-            var user = await this.verifyJwtToken(token, process.env.USER_ACCESS_TOKEN_SECRET);
-            if (!user) {
+            // RSA JWT verification
+            const claims = this._jwtRsaService.verifyToken(token);
+            if (!claims) {
                 res = {
                     Result        : false,
                     Message       : 'Invalid or expired user login session.',
@@ -94,10 +94,26 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 logger.info('Invalid or expired user login session.');
                 return res;
             }
-            if (!user.SessionId) {
+            // Convert JWT claims to CurrentUser format
+            const currentUser: CurrentUser = {
+                UserId: claims.userId || claims.sub,
+                TenantId: claims.tenantId || '',
+                TenantCode: claims.tenantId || 'default',
+                TenantName: claims.tenantName || 'Default Tenant',
+                DisplayName: claims.displayName || claims.username || claims.email || 'Unknown',
+                PhoneCode: claims.phoneCode || '',
+                PhoneNumber: '', // Not available in JWT claims
+                Email: claims.email || '',
+                UserName: claims.username || '',
+                SessionId: claims.sessionId,
+                IsTestUser: false, // Default value
+                Roles: claims.role ? [{ id: 'role-id', Name: claims.role }] : []
+            };
+
+            if (!currentUser.SessionId) {
                 const isPrivilegedAccess = request.currentClient.IsPrivileged as boolean;
                 if (isPrivilegedAccess) {
-                    request.currentUser = user as CurrentUser;
+                    request.currentUser = currentUser;
                     logger.info('Privileged access granted without session Id.');
                     return res;
                 }
@@ -111,7 +127,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 return res;
             }
 
-            var isValidUserLoginSession = await this._userAuthService.isValidUserLoginSession(user.SessionId);
+            var isValidUserLoginSession = await this._userAuthService.isValidUserLoginSession(currentUser.SessionId);
 
             if (!isValidUserLoginSession) {
                 res = {
@@ -123,7 +139,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 return res;
             }
 
-            request.currentUser = user as CurrentUser;
+            request.currentUser = currentUser;
             request.currentUserTenantId = request.currentUser?.TenantId;
             res = {
                 Result        : true,
@@ -245,12 +261,12 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
             jwt.verify(token, secret, (err, decoded) => {
                 if (err) {
                     logger.info('Token invalid or expired');
-                    return reject(null); // Token invalid or expired
+                    return reject(new Error('Token invalid or expired'));
                 }
                 // Ensure payload is an object (JwtPayload)
                 if (typeof decoded === 'string' || !decoded) {
                     logger.info('Invalid token payload');
-                    return reject(null);
+                    return reject(new Error('Invalid token payload'));
                 }
                 resolve(decoded as JwtPayload);
             });
