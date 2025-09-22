@@ -354,7 +354,6 @@ class MfaService:
                     first_name=user_entity.first_name,
                     last_name=user_entity.last_name,
                     is_active=user_entity.is_active,
-                    is_verified=user_entity.is_verified,
                     created_at=user_entity.created_at,
                     updated_at=user_entity.updated_at,
                     last_login=user_entity.last_login

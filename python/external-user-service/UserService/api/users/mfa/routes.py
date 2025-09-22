@@ -44,6 +44,10 @@ def get_mfa_handler(mfa_service: MfaService = Depends(get_mfa_service)) -> MfaHa
     return MfaHandler(mfa_service)
 
 
+
+
+
+
 # Routes
 
 @mfa_router.post("/setup-totp", response_model=MfaSetupResponse)
