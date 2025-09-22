@@ -58,7 +58,6 @@ export class UserAuthService {
         @inject('ITenantRepo') private _tenantRepo: ITenantRepo,
     ) { }
 
-    //#region Publics
 
     public setPassword = async (userId: uuid, password: string) => {
         const hashedPassword = Helper.hash(password);
@@ -600,9 +599,7 @@ export class UserAuthService {
         return sentSms;
     };
 
-    //#endregion
 
-    //#region Privates
 
     private async passwordLogin(user: UserDto, tenant: TenantDto, password: string) {
 
@@ -811,6 +808,5 @@ export class UserAuthService {
         }
     };
 
-    //#endregion
 
 }

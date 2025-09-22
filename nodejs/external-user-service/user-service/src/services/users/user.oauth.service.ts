@@ -50,7 +50,6 @@ export class UserOAuthService {
         private _authService: UserAuthService
     ) {}
 
-    //#region GitHub OAuth
 
     async githubOAuthLogin(): Promise<OAuthLoginResponse> {
         const clientId = process.env.GITHUB_CLIENT_ID;
@@ -77,7 +76,6 @@ export class UserOAuthService {
     async githubOAuthCallback(params: GitHubOAuthCallbackParams, request: any): Promise<OAuthCallbackResponse> {
         const { code } = params;
 
-        // Get GitHub OAuth configuration
         const clientId = process.env.GITHUB_CLIENT_ID;
         const clientSecret = process.env.GITHUB_CLIENT_SECRET;
 
@@ -85,7 +83,6 @@ export class UserOAuthService {
             throw new ApiError(500, 'GitHub OAuth configuration is missing');
         }
 
-        // Exchange code for access token
         const tokenUrl = `https://github.com/login/oauth/access_token?client_id=${clientId}&client_secret=${clientSecret}&code=${code}`;
         
         const tokenResponse = await axios.post(tokenUrl, '', {
@@ -100,13 +97,11 @@ export class UserOAuthService {
 
         const githubAccessToken = tokenResponse.data.access_token;
 
-        // Get GitHub user information
         const githubUser = await this.getGithubUser(githubAccessToken);
         if (!githubUser) {
             throw new ApiError(500, 'Unable to retrieve GitHub user information');
         }
 
-        // Get user email
         let userEmail = await this.getGithubUserEmail(githubAccessToken);
         if (!userEmail) {
             userEmail = githubUser.email;
@@ -163,7 +158,6 @@ export class UserOAuthService {
                 
                 const emails = response.data as GitHubEmail[];
                 
-                // Get the primary email or the first verified email
                 const primaryEmail = emails.find(e => e.primary)?.email;
                 const verifiedEmail = emails.find(e => e.verified)?.email;
                 
@@ -181,9 +175,7 @@ export class UserOAuthService {
         }
     }
 
-    //#endregion
 
-    //#region Google OAuth
 
     async googleOAuthLogin(): Promise<OAuthLoginResponse> {
         const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -219,7 +211,6 @@ export class UserOAuthService {
             throw new ApiError(500, 'Google OAuth not configured');
         }
 
-        // Exchange code for access token
         const tokenUrl = 'https://oauth2.googleapis.com/token';
         const tokenResponse = await axios.post(tokenUrl, {
             client_id: clientId,
@@ -240,7 +231,6 @@ export class UserOAuthService {
         const tokenData: GoogleAccessTokenModel = tokenResponse.data;
         const googleAccessToken = tokenData.access_token;
 
-        // Get user information from Google
         const googleUser = await this.getGoogleUser(googleAccessToken);
         if (!googleUser) {
             throw new ApiError(500, 'Unable to retrieve Google user information');
@@ -270,14 +260,11 @@ export class UserOAuthService {
             }
             return null;
         } catch (error) {
-            console.error('Error fetching Google user:', error);
             return null;
         }
     }
 
-    //#endregion
 
-    //#region Facebook OAuth
 
     async facebookOAuthLogin(): Promise<OAuthLoginResponse> {
         const clientId = process.env.FACEBOOK_CLIENT_ID;
@@ -313,7 +300,6 @@ export class UserOAuthService {
             throw new ApiError(500, 'Facebook OAuth not configured');
         }
 
-        // Exchange code for access token
         const tokenUrl = `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&client_secret=${clientSecret}&code=${code}`;
         
         const tokenResponse = await axios.get(tokenUrl);
@@ -325,7 +311,6 @@ export class UserOAuthService {
         const tokenData: FacebookAccessTokenModel = tokenResponse.data;
         const facebookAccessToken = tokenData.access_token;
 
-        // Get user information from Facebook
         const facebookUser = await this.getFacebookUser(facebookAccessToken);
         if (!facebookUser) {
             throw new ApiError(500, 'Unable to retrieve Facebook user information');
@@ -351,14 +336,11 @@ export class UserOAuthService {
             }
             return null;
         } catch (error) {
-            console.error('Error fetching Facebook user:', error);
             return null;
         }
     }
 
-    //#endregion
 
-    //#region Twitter OAuth
 
     async twitterOAuthLogin(): Promise<OAuthLoginResponse> {
         const clientId = process.env.TWITTER_CLIENT_ID;
@@ -394,7 +376,6 @@ export class UserOAuthService {
             throw new ApiError(500, 'Twitter OAuth not configured');
         }
 
-        // Exchange code for access token
         const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
         const tokenResponse = await axios.post(tokenUrl, new URLSearchParams({
             code: code,
@@ -416,7 +397,6 @@ export class UserOAuthService {
         const tokenData: TwitterAccessTokenModel = tokenResponse.data;
         const twitterAccessToken = tokenData.access_token;
 
-        // Get user information from Twitter
         const twitterUser = await this.getTwitterUser(twitterAccessToken);
         if (!twitterUser) {
             throw new ApiError(500, 'Unable to retrieve Twitter user information');
@@ -424,7 +404,6 @@ export class UserOAuthService {
 
         let userEmail = twitterUser.email;
         if (!userEmail) {
-            // Twitter doesn't always provide email, create a placeholder
             userEmail = `${twitterUser.username}@twitter.oauth.user`;
         }
 
@@ -436,15 +415,12 @@ export class UserOAuthService {
 
     private async getTwitterUser(accessToken: string): Promise<TwitterUser | null> {
         try {
-            // Try to get user info with email first
             let response = await axios.get('https://api.twitter.com/2/users/me?user.fields=id,name,username,email,profile_image_url,verified,description,location,url,created_at,public_metrics', {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
                     'User-Agent': 'User-Service-OAuth'
                 }
             }).catch(async (emailError) => {
-                console.log('Email access not available, trying without email:', emailError.response?.status);
-                // If email access fails, try without email field
                 return await axios.get('https://api.twitter.com/2/users/me?user.fields=id,name,username,profile_image_url,verified,description,location,url,created_at,public_metrics', {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
@@ -454,23 +430,15 @@ export class UserOAuthService {
             });
 
             if (response.status === 200 && response.data.data) {
-                console.log('Twitter User Response:', JSON.stringify(response.data, null, 2));
                 return response.data.data as TwitterUser;
             }
-            
-            console.log('Twitter API Error - Status:', response.status);
-            console.log('Twitter API Error - Data:', response.data);
             return null;
         } catch (error) {
-            console.error('Error fetching Twitter user:', error.response?.data || error.message);
-            console.error('Twitter API Status:', error.response?.status);
             return null;
         }
     }
 
-    //#endregion
 
-    //#region Common OAuth Helper Methods
 
     private async handleOAuthUser(
         email: string, 
@@ -479,11 +447,9 @@ export class UserOAuthService {
         request: any, 
         provider: string
     ): Promise<OAuthCallbackResponse> {
-        // Check if user exists
         const existingUser = await this._userService.getByEmail(null, email);
         
         if (existingUser) {
-            // User exists, log them in
             const loginResult = await this._authService.loginWithOAuth(existingUser.id);
             if (!loginResult) {
                 throw new ApiError(500, 'Session cannot be created');
@@ -499,12 +465,10 @@ export class UserOAuthService {
                 ExpiresAt: loginResult.ExpiresAt
             };
         } else {
-            // Create new user
             const nameTokens = fullName?.split(' ') || [];
             const firstName = nameTokens[0] || '';
             const lastName = nameTokens.length > 1 ? nameTokens.slice(1).join(' ') : '';
 
-            // Get default tenant for user creation
             const tenant = await this._authService['_tenantRepo'].getTenantWithCode('default');
             if (!tenant) {
                 throw new ApiError(500, 'Default tenant not found. Please contact system administrator.');
@@ -542,5 +506,4 @@ export class UserOAuthService {
         }
     }
 
-    //#endregion
 }

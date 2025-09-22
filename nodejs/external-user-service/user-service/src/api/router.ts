@@ -16,7 +16,6 @@ import { register as registerMfaRoutes } from './users/mfa/mfa.routes';
 import { register as registerOAuthRoutes } from './oauth/oauth.routes';
 import { wellKnownRoutes } from './wellknown/wellknown.routes';
 
-////////////////////////////////////////////////////////////////////////////////////
 
 export class Router {
 

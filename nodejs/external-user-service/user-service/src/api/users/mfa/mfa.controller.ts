@@ -30,7 +30,6 @@ export interface GenerateBackupCodesRequest {
 
 export class MfaController extends BaseController {
 
-    //#region member variables and constructors
 
     _mfaService: MfaService = Injector.Container.resolve(MfaService);
 
@@ -38,9 +37,7 @@ export class MfaController extends BaseController {
         super();
     }
 
-    //#endregion
 
-    //#region Setup MFA
 
     /**
      * Setup TOTP for the current user
@@ -111,9 +108,7 @@ export class MfaController extends BaseController {
         }
     };
 
-    //#endregion
 
-    //#region Validate MFA
 
     /**
      * Validate MFA token (TOTP or backup code)
@@ -156,9 +151,7 @@ export class MfaController extends BaseController {
         }
     };
 
-    //#endregion
 
-    //#region Manage MFA
 
     /**
      * Get MFA status for the current user
@@ -252,9 +245,7 @@ export class MfaController extends BaseController {
         }
     };
 
-    //#endregion
 
-    //#region Utility Methods
 
     /**
      * Get QR code for TOTP setup (alternative endpoint)
@@ -289,5 +280,4 @@ export class MfaController extends BaseController {
         }
     };
 
-    //#endregion
 }

@@ -37,7 +37,6 @@ export class TotpService {
                 length: 32
             });
 
-            // Generate QR code data URL
             const qrCodeDataUrl = await qrcode.toDataURL(secret.otpauth_url!);
 
             // Generate backup codes (optional)

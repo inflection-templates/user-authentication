@@ -29,7 +29,6 @@ export interface MfaStatus {
 @injectable()
 export class MfaService {
 
-    // Temporary storage for TOTP secrets during setup (use Redis/database in production)
     private static tempSecrets = new Map<string, { secret: string, timestamp: number }>();
     private static readonly TEMP_SECRET_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
@@ -45,13 +44,7 @@ export class MfaService {
      */
     public async setupTotp(userId: uuid, userIdentifier: string): Promise<MfaSetupResult> {
         try {
-            // Check if user exists (placeholder - implement based on your user service)
-            // const user = await this._getUserById(userId);
-            // if (!user) {
-            //     throw new ApiError(404, 'User not found');
-            // }
 
-            // Check if TOTP is already enabled
             const mfaStatus = await this.getMfaStatus(userId);
             if (mfaStatus.enabled && mfaStatus.methods.includes('totp')) {
                 return {
@@ -60,7 +53,6 @@ export class MfaService {
                 };
             }
 
-            // Generate TOTP secret
             const totpSecret = await this._totpService.generateSecret(
                 userIdentifier, 
                 ConfigurationManager.SystemIdentifier
@@ -96,7 +88,6 @@ export class MfaService {
         try {
             logger.info(`Attempting TOTP verification for user: ${userId} with token: ${token}`);
             
-            // Get temporary TOTP secret
             const tempSecret = await this.getTempTotpSecret(userId);
             if (!tempSecret) {
                 logger.warn(`TOTP verification failed - no temp secret found for user: ${userId}`);
@@ -117,7 +108,6 @@ export class MfaService {
                 };
             }
 
-            // Enable TOTP for the user
             await this.enableTotpForUser(userId, tempSecret);
 
             // Clean up temporary secret
@@ -145,11 +135,6 @@ export class MfaService {
      */
     public async validateMfa(userId: uuid, token: string, method: 'totp' | 'backup' = 'totp'): Promise<MfaValidationResult> {
         try {
-            // Check if user exists (placeholder - implement based on your user service)
-            // const user = await this._getUserById(userId);
-            // if (!user) {
-            //     throw new ApiError(404, 'User not found');
-            // }
 
             const mfaStatus = await this.getMfaStatus(userId);
             if (!mfaStatus.enabled) {
@@ -188,7 +173,6 @@ export class MfaService {
                 throw new ApiError(400, 'Invalid TOTP token. Cannot disable MFA.');
             }
 
-            // Disable MFA
             await this.disableMfaForUser(userId);
 
             logger.info(`MFA disabled for user: ${userId}`);
@@ -214,7 +198,6 @@ export class MfaService {
             //     throw new ApiError(404, 'User not found');
             // }
 
-            // Check if user has TOTP enabled (you'll need to implement this based on your schema)
             const totpEnabled = await this.isTotpEnabledForUser(userId);
             
             const methods: string[] = [];
@@ -391,7 +374,6 @@ export class MfaService {
 
     private async enableTotpForUser(userId: uuid, secret: string): Promise<void> {
         // Implementation depends on your database schema
-        // Update user's auth profile to enable TOTP
         logger.info(`Enabling TOTP for user: ${userId}`);
     }
 

@@ -29,7 +29,6 @@ export class UserService {
         @inject('ITenantRepo') private _tenantRepo: ITenantRepo,
     ) {}
 
-    //#region Publics
 
     public create = async (model: UserCreateModel) => {
 
@@ -108,22 +107,6 @@ export class UserService {
         return userName;
     };
 
-    // public updateCurrentTimezone = async () => {
-    //     try {
-    //         const users = await this._userRepo.getAllRegisteredUsers();
-    //         for await (var u of users) {
-    //             var extractedResult = await this.sanitizeTimezone(u.DefaultTimeZone);
-    //             u.CurrentTimeZone = extractedResult;
-    //             var entity: UserDomainModel = {
-    //                 CurrentTimeZone : extractedResult,
-    //                 DefaultTimeZone : extractedResult,
-    //             };
-    //             const updateUser = await this._userRepo.update(u.id, entity);
-    //         }
-    //     } catch (error) {
-    //         logger.info(`Error updating the current timezone.`);
-    //     }
-    // };
 
     public getDateInUserTimeZone = async (userId: uuid, dateStr: string, useCurrent = true) => {
         var user = await this.getById(userId);
@@ -209,9 +192,7 @@ export class UserService {
         return user;
     };
 
-    //#endregion
 
-    //#region Privates
 
     private constructUserName(firstName: string, lastName: string) {
         const rand = Math.random().toString(10)
@@ -237,6 +218,5 @@ export class UserService {
         return extractedString;
     };
 
-    //#endregion
 
 }
