@@ -1,0 +1,34 @@
+meta {
+  name: 14 - MFA Health Check
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/mfa/health
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 14: MFA HEALTH CHECK ===");
+  console.log("MFA Health Check Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ MFA Service is healthy!");
+    console.log("Response:", res.body);
+    console.log("Status:", res.body.status);
+    console.log("Service:", res.body.service);
+    console.log("Available Features:", res.body.features);
+    console.log("🎉 All MFA functionality is working correctly!");
+  } else {
+    console.error("❌ MFA Health Check Failed:", res.body);
+    console.log("Check if the MFA service is running properly");
+  }
+}

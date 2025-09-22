@@ -23,7 +23,7 @@ from api.users.mfa.handlers import (
     BackupCodesResponse
 )
 from services.mfa_service import MfaService
-from database.database import get_database_session
+from database.db_context import get_db_session
 from domain.types.user_types import User
 from startup.dependencies import get_current_user
 import io
@@ -31,10 +31,10 @@ import io
 logger = logging.getLogger(__name__)
 
 # Create router
-mfa_router = APIRouter(prefix="/api/v1/users/mfa", tags=["MFA"])
+mfa_router = APIRouter(prefix="/users/mfa", tags=["MFA"])
 
 
-def get_mfa_service(db_session: AsyncSession = Depends(get_database_session)) -> MfaService:
+def get_mfa_service(db_session: AsyncSession = Depends(get_db_session)) -> MfaService:
     """Dependency to get MFA service"""
     return MfaService(db_session)
 

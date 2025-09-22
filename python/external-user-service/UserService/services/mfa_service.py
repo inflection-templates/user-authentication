@@ -333,46 +333,265 @@ class MfaService:
                 message="Error validating backup code"
             )
 
-    # Database interaction methods (to be implemented based on your schema)
+    # Database interaction methods
     
     async def _get_user_by_id(self, user_id: UUID) -> Optional[User]:
-        """Get user by ID - implement based on your database schema"""
-        # This would typically use your user repository
-        logger.info(f"Getting user by ID: {user_id}")
-        return None  # Placeholder
+        """Get user by ID"""
+        try:
+            from sqlalchemy import select
+            from database.entities.user_entities import UserEntity
+            
+            result = await self.db_session.execute(
+                select(UserEntity).where(UserEntity.id == str(user_id))
+            )
+            user_entity = result.scalar_one_or_none()
+            
+            if user_entity:
+                return User(
+                    id=user_entity.id,
+                    email=user_entity.email,
+                    username=user_entity.username,
+                    first_name=user_entity.first_name,
+                    last_name=user_entity.last_name,
+                    is_active=user_entity.is_active,
+                    is_verified=user_entity.is_verified,
+                    created_at=user_entity.created_at,
+                    updated_at=user_entity.updated_at,
+                    last_login=user_entity.last_login
+                )
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting user by ID {user_id}: {str(e)}")
+            return None
 
     async def _store_temp_totp_secret(self, user_id: UUID, secret: str) -> None:
-        """Store temporary TOTP secret - implement based on your database schema"""
-        logger.info(f"Storing temporary TOTP secret for user: {user_id}")
+        """Store temporary TOTP secret"""
+        try:
+            from database.entities.user_entities import UserMfaTempSecretEntity
+            from datetime import datetime, timedelta
+            
+            # Clear any existing temp secret for this user
+            await self._clear_temp_totp_secret(user_id)
+            
+            # Create new temp secret
+            temp_secret = UserMfaTempSecretEntity(
+                user_id=str(user_id),
+                secret=secret,
+                secret_type="TOTP",
+                expires_at=datetime.utcnow() + timedelta(minutes=30)
+            )
+            
+            self.db_session.add(temp_secret)
+            await self.db_session.commit()
+            
+            logger.info(f"Stored temporary TOTP secret for user: {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error storing temp TOTP secret for user {user_id}: {str(e)}")
+            await self.db_session.rollback()
+            raise
 
     async def _get_temp_totp_secret(self, user_id: UUID) -> Optional[str]:
-        """Get temporary TOTP secret - implement based on your database schema"""
-        logger.info(f"Getting temporary TOTP secret for user: {user_id}")
-        return None  # Placeholder
+        """Get temporary TOTP secret"""
+        try:
+            from sqlalchemy import select, and_
+            from database.entities.user_entities import UserMfaTempSecretEntity
+            from datetime import datetime
+            
+            result = await self.db_session.execute(
+                select(UserMfaTempSecretEntity).where(
+                    and_(
+                        UserMfaTempSecretEntity.user_id == str(user_id),
+                        UserMfaTempSecretEntity.secret_type == "TOTP",
+                        UserMfaTempSecretEntity.is_used == False,
+                        UserMfaTempSecretEntity.expires_at > datetime.utcnow()
+                    )
+                )
+            )
+            temp_secret = result.scalar_one_or_none()
+            
+            return temp_secret.secret if temp_secret else None
+            
+        except Exception as e:
+            logger.error(f"Error getting temp TOTP secret for user {user_id}: {str(e)}")
+            return None
 
     async def _clear_temp_totp_secret(self, user_id: UUID) -> None:
-        """Clear temporary TOTP secret - implement based on your database schema"""
-        logger.info(f"Clearing temporary TOTP secret for user: {user_id}")
+        """Clear temporary TOTP secret"""
+        try:
+            from sqlalchemy import delete
+            from database.entities.user_entities import UserMfaTempSecretEntity
+            
+            await self.db_session.execute(
+                delete(UserMfaTempSecretEntity).where(
+                    UserMfaTempSecretEntity.user_id == str(user_id)
+                )
+            )
+            await self.db_session.commit()
+            
+            logger.info(f"Cleared temporary TOTP secret for user: {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error clearing temp TOTP secret for user {user_id}: {str(e)}")
+            await self.db_session.rollback()
+            raise
 
     async def _enable_totp_for_user(self, user_id: UUID, secret: str) -> None:
-        """Enable TOTP for user - implement based on your database schema"""
-        logger.info(f"Enabling TOTP for user: {user_id}")
+        """Enable TOTP for user"""
+        try:
+            from sqlalchemy import select, update
+            from database.entities.user_entities import UserAuthProfileEntity
+            from datetime import datetime
+            import json
+            
+            # Generate backup codes
+            backup_codes = self.totp_service._generate_backup_codes()
+            
+            # Get or create auth profile
+            result = await self.db_session.execute(
+                select(UserAuthProfileEntity).where(
+                    UserAuthProfileEntity.user_id == str(user_id)
+                )
+            )
+            auth_profile = result.scalar_one_or_none()
+            
+            if auth_profile:
+                # Update existing profile
+                await self.db_session.execute(
+                    update(UserAuthProfileEntity)
+                    .where(UserAuthProfileEntity.user_id == str(user_id))
+                    .values(
+                        mfa_enabled=True,
+                        mfa_type="TOTP",
+                        totp_secret=secret,
+                        totp_secret_last_rotated=datetime.utcnow(),
+                        backup_codes=json.dumps(backup_codes),
+                        updated_at=datetime.utcnow()
+                    )
+                )
+            else:
+                # Create new auth profile
+                auth_profile = UserAuthProfileEntity(
+                    user_id=str(user_id),
+                    login_type="EMAIL",  # Default login type
+                    mfa_enabled=True,
+                    mfa_type="TOTP",
+                    totp_secret=secret,
+                    totp_secret_last_rotated=datetime.utcnow(),
+                    backup_codes=json.dumps(backup_codes)
+                )
+                self.db_session.add(auth_profile)
+            
+            await self.db_session.commit()
+            logger.info(f"Enabled TOTP for user: {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error enabling TOTP for user {user_id}: {str(e)}")
+            await self.db_session.rollback()
+            raise
 
     async def _disable_mfa_for_user(self, user_id: UUID) -> None:
-        """Disable MFA for user - implement based on your database schema"""
-        logger.info(f"Disabling MFA for user: {user_id}")
+        """Disable MFA for user"""
+        try:
+            from sqlalchemy import update
+            from database.entities.user_entities import UserAuthProfileEntity
+            from datetime import datetime
+            
+            await self.db_session.execute(
+                update(UserAuthProfileEntity)
+                .where(UserAuthProfileEntity.user_id == str(user_id))
+                .values(
+                    mfa_enabled=False,
+                    mfa_type="NONE",
+                    totp_secret=None,
+                    totp_secret_last_rotated=None,
+                    backup_codes=None,
+                    updated_at=datetime.utcnow()
+                )
+            )
+            await self.db_session.commit()
+            
+            logger.info(f"Disabled MFA for user: {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error disabling MFA for user {user_id}: {str(e)}")
+            await self.db_session.rollback()
+            raise
 
     async def _is_totp_enabled_for_user(self, user_id: UUID) -> bool:
-        """Check if TOTP is enabled for user - implement based on your database schema"""
-        return False  # Placeholder
+        """Check if TOTP is enabled for user"""
+        try:
+            from sqlalchemy import select, and_
+            from database.entities.user_entities import UserAuthProfileEntity
+            
+            result = await self.db_session.execute(
+                select(UserAuthProfileEntity).where(
+                    and_(
+                        UserAuthProfileEntity.user_id == str(user_id),
+                        UserAuthProfileEntity.mfa_enabled == True,
+                        UserAuthProfileEntity.mfa_type == "TOTP",
+                        UserAuthProfileEntity.totp_secret.isnot(None)
+                    )
+                )
+            )
+            auth_profile = result.scalar_one_or_none()
+            
+            return auth_profile is not None
+            
+        except Exception as e:
+            logger.error(f"Error checking TOTP status for user {user_id}: {str(e)}")
+            return False
 
     async def _get_totp_secret_for_user(self, user_id: UUID) -> Optional[str]:
-        """Get TOTP secret for user - implement based on your database schema"""
-        return None  # Placeholder
+        """Get TOTP secret for user"""
+        try:
+            from sqlalchemy import select, and_
+            from database.entities.user_entities import UserAuthProfileEntity
+            
+            result = await self.db_session.execute(
+                select(UserAuthProfileEntity).where(
+                    and_(
+                        UserAuthProfileEntity.user_id == str(user_id),
+                        UserAuthProfileEntity.mfa_enabled == True,
+                        UserAuthProfileEntity.mfa_type == "TOTP"
+                    )
+                )
+            )
+            auth_profile = result.scalar_one_or_none()
+            
+            return auth_profile.totp_secret if auth_profile else None
+            
+        except Exception as e:
+            logger.error(f"Error getting TOTP secret for user {user_id}: {str(e)}")
+            return None
 
     async def _get_backup_codes_for_user(self, user_id: UUID) -> List[str]:
-        """Get backup codes for user - implement based on your database schema"""
-        return []  # Placeholder
+        """Get backup codes for user"""
+        try:
+            from sqlalchemy import select, and_
+            from database.entities.user_entities import UserAuthProfileEntity
+            import json
+            
+            result = await self.db_session.execute(
+                select(UserAuthProfileEntity).where(
+                    and_(
+                        UserAuthProfileEntity.user_id == str(user_id),
+                        UserAuthProfileEntity.mfa_enabled == True,
+                        UserAuthProfileEntity.mfa_type == "TOTP"
+                    )
+                )
+            )
+            auth_profile = result.scalar_one_or_none()
+            
+            if auth_profile and auth_profile.backup_codes:
+                return json.loads(auth_profile.backup_codes)
+            
+            return []
+            
+        except Exception as e:
+            logger.error(f"Error getting backup codes for user {user_id}: {str(e)}")
+            return []
 
     async def _get_backup_codes_count(self, user_id: UUID) -> int:
         """Get backup codes count for user"""
@@ -380,9 +599,44 @@ class MfaService:
         return len(codes)
 
     async def _store_backup_codes(self, user_id: UUID, codes: List[str]) -> None:
-        """Store backup codes - implement based on your database schema"""
-        logger.info(f"Storing backup codes for user: {user_id}")
+        """Store backup codes"""
+        try:
+            from sqlalchemy import update
+            from database.entities.user_entities import UserAuthProfileEntity
+            from datetime import datetime
+            import json
+            
+            await self.db_session.execute(
+                update(UserAuthProfileEntity)
+                .where(UserAuthProfileEntity.user_id == str(user_id))
+                .values(
+                    backup_codes=json.dumps(codes),
+                    updated_at=datetime.utcnow()
+                )
+            )
+            await self.db_session.commit()
+            
+            logger.info(f"Stored backup codes for user: {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error storing backup codes for user {user_id}: {str(e)}")
+            await self.db_session.rollback()
+            raise
 
     async def _remove_used_backup_code(self, user_id: UUID, code: str) -> None:
-        """Remove used backup code - implement based on your database schema"""
-        logger.info(f"Removing used backup code for user: {user_id}")
+        """Remove used backup code"""
+        try:
+            backup_codes = await self._get_backup_codes_for_user(user_id)
+            
+            # Remove the used code (case-insensitive)
+            normalized_code = code.replace(' ', '').upper()
+            backup_codes = [bc for bc in backup_codes if bc.replace(' ', '').upper() != normalized_code]
+            
+            # Store updated backup codes
+            await self._store_backup_codes(user_id, backup_codes)
+            
+            logger.info(f"Removed used backup code for user: {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error removing backup code for user {user_id}: {str(e)}")
+            raise

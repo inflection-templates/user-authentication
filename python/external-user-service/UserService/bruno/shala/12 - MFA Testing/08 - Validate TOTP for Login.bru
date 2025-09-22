@@ -1,0 +1,50 @@
+meta {
+  name: 08 - Validate TOTP for Login
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/mfa/validate-totp
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "user_id": "{{USER_ID}}",
+    "session_id": "{{SESSION_ID}}",
+    "totp_code": "{{TOTP_CODE}}"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 8: VALIDATE TOTP FOR LOGIN ===");
+  console.log("TOTP Validation Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ TOTP Validation Successful!");
+    console.log("Response:", res.body);
+    console.log("Access Token:", res.body.data.token);
+    console.log("Refresh Token:", res.body.data.refreshToken);
+    
+    // Store tokens for future requests
+    bru.setEnvVar("USER_ACCESS_TOKEN", res.body.data.token);
+    bru.setEnvVar("USER_REFRESH_TOKEN", res.body.data.refreshToken);
+    console.log("🔑 New access tokens stored!");
+    console.log("🎉 Authentication completed successfully with MFA!");
+    console.log("Next: Step 9 - Test Backup Code (optional)");
+    console.log("Next: Step 10 - Generate New Backup Codes (optional)");
+  } else {
+    console.error("❌ TOTP Validation Failed:", res.body);
+    console.log("Make sure you're using a valid 6-digit TOTP code from your authenticator app");
+    console.log("💡 TOTP codes change every 30 seconds - try getting a fresh code");
+  }
+}

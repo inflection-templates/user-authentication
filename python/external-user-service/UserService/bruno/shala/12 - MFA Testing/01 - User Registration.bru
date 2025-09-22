@@ -1,0 +1,51 @@
+meta {
+  name: 01 - User Registration
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "email": "{{USER_EMAIL}}",
+    "password": "{{USER_PASSWORD}}",
+    "confirm_password": "{{USER_PASSWORD}}",
+    "first_name": "Test",
+    "last_name": "User",
+    "username": "testuser"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 1: USER REGISTRATION ===");
+  console.log("Registration Status:", status);
+  
+  if (status == 200 || status == 201) {
+    console.log("✅ User registered successfully!");
+    console.log("Response:", res.body);
+    
+    // Store tokens for future requests
+    if (res.body.data && res.body.data.token) {
+      bru.setEnvVar("USER_ACCESS_TOKEN", res.body.data.token);
+      bru.setEnvVar("USER_REFRESH_TOKEN", res.body.data.refreshToken);
+      console.log("🔑 Access token stored for next steps");
+    }
+  } else {
+    console.error("❌ Registration failed:", res.body);
+    console.log("Check if user already exists or API keys are correct");
+  }
+  
+  console.log("Next: Step 2 - Check MFA Status");
+}

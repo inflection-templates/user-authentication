@@ -11,9 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.db_context import get_db_session
 from domain.types.user_types import (
     UserPasswordLoginModel, UserPhoneLoginModel, UserOtpLoginModel, UserSendOtpModel,
-    UserResetPasswordSendLinkModel, UserResetPasswordModel,
+    UserTotpValidationModel, UserResetPasswordSendLinkModel, UserResetPasswordModel,
     UserChangePasswordModel, UserRefreshTokenModel, UserRegistrationModel,
-    LoginResponseModel, TokenResponseModel, ApiResponse
+    LoginResponseModel, TokenResponseModel, ApiResponse, MfaRequiredResponseModel
 )
 from services.user_auth_service import UserAuthService
 from services.jwt_token_service import JwtTokenService
@@ -38,13 +38,14 @@ def get_auth_handler(
     return AuthHandler(auth_service, jwt_service)
 
 
-@auth_router.post("/login", response_model=LoginResponseModel)
+@auth_router.post("/login")
 async def login_with_password(
     login_data: UserPasswordLoginModel,
     handler: AuthHandler = Depends(get_auth_handler)
 ):
     """
     Authenticate user with email and password
+    Returns LoginResponseModel if successful, MfaRequiredResponseModel if MFA is required
     """
     return await handler.login_with_password(login_data)
 
@@ -80,6 +81,17 @@ async def send_otp(
     Send OTP to user's email
     """
     return await handler.send_otp(otp_request)
+
+
+@auth_router.post("/mfa/validate-totp", response_model=LoginResponseModel)
+async def validate_totp_for_login(
+    totp_request: UserTotpValidationModel,
+    handler: AuthHandler = Depends(get_auth_handler)
+):
+    """
+    Validate TOTP code for login and complete authentication
+    """
+    return await handler.validate_totp_for_login(totp_request)
 
 
 @auth_router.post("/register", response_model=LoginResponseModel)
