@@ -1,7 +1,7 @@
 meta {
   name: Upload file as public resource
   type: http
-  seq: 2
+  seq: 3
 }
 
 post {
@@ -17,7 +17,7 @@ headers {
 }
 
 body:multipart-form {
-  name: @file(C:\Users\91920\Pictures\Screenshots\Screenshot 2025-05-22 121338.png)
+  name: @file({{TEST_IMAGE_PATH}})
   IsPublicResource: true
 }
 

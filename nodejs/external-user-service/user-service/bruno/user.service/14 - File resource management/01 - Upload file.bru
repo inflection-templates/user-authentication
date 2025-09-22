@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{BASE_URL}}/file-resources/upload
+  url: {{BASE_URL}}/file-resources/upload/
   body: multipartForm
   auth: none
 }
@@ -18,7 +18,7 @@ headers {
 }
 
 body:multipart-form {
-  Name: @file(C:\Users\Prashant Kharade\OneDrive\Pictures\1694802364088.jpg)
+  Name: @file({{TEST_IMAGE_PATH}})
   IsPublicResource: true
   IsMultiResolutionImage: false
   z: c
