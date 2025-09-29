@@ -23,7 +23,6 @@ export interface UserCreateModel {
     IsTestUser       ?: boolean;
     PreferredLanguage?: SupportedLanguage;
     UserSettings     ?: any;
-    RoleIds          ?: uuid[];
 }
 
 export interface UserUpdateModel {
@@ -71,10 +70,6 @@ export interface UserDto {
     DateOfBirth      ?: Date;
     ProfileImageUrl  ?: string;
     Metadata         ?: UserMetadataModel;
-    Roles            ?: {
-        id             : uuid;
-        Name           : string;
-    }[];
     CreatedAt        ?: Date;
     UpdatedAt        ?: Date;
 }

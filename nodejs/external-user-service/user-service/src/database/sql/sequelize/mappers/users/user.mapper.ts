@@ -1,7 +1,6 @@
 import User from '../../models/users/user.model';
 import { UserDto } from '../../../../../domain.types/users/user.types';
 import Tenant from '../../models/tenant/tenant.model';
-import Role from '../../models/authorization/role.model';
 import { Gender } from '../../../../../domain.types/miscellaneous/system.types';
 import UserMetadata from '../../models/users/user.metadata.model';
 import { SupportedLanguage } from '../../../../../domain.types/users/user.enums';
@@ -13,8 +12,7 @@ export class UserMapper {
     static toDto = (
         user: User,
         metadata: UserMetadata | null = null,
-        tenant: Tenant | null = null,
-        roles: Role[] | null = null
+        tenant: Tenant | null = null
     ): UserDto => {
 
         if (user == null){
@@ -52,10 +50,6 @@ export class UserMapper {
                 PreferredLanguage : metadata.PreferredLanguage as SupportedLanguage,
                 UserSettings      : metadata.UserSettings,
             } : null,
-            Roles : roles ? roles.map(role => ({
-                id   : role.id,
-                Name : role.Name,
-            })) : null,
         };
         return dto;
     };

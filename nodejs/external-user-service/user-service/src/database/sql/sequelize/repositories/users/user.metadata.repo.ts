@@ -20,6 +20,7 @@ export class UserMetadataRepo implements IUserMetadataRepo {
                 IsTestUser        : model.IsTestUser,
                 PreferredLanguage : model.PreferredLanguage,
                 LastLogin         : model.LastLogin,
+                UserSettings      : model.UserSettings,
             });
             return record ? true : false;
         } catch (error) {

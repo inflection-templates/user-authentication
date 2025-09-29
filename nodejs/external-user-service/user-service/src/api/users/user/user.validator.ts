@@ -67,7 +67,6 @@ export class UserValidator {
             PhoneNumber       : request.body.PhoneNumber ?? null,
             Email             : request.body.Email ?? null,
             ProfileImageUrl   : request.body.ProfileImageUrl ?? null,
-            RoleIds           : request.body.RoleIds ?? [],
             UserName          : request.body.UserName ?? null,
             Password          : request.body.Password,
             CurrentTimeZone   : request.body.CurrentTimeZone ?? '+05:30',

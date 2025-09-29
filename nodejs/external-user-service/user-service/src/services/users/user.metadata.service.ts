@@ -1,13 +1,11 @@
 import { IUserSessionRepo } from '../../database/repository.interfaces/users/user.session.repo.interface';
 import { inject, injectable } from 'tsyringe';
 import { IUserOtpRepo } from '../../database/repository.interfaces/users/user.otp.repo.interface';
-import { IRoleRepo } from '../../database/repository.interfaces/authorization/role.repo.interface';
 import { IUserRepo } from '../../database/repository.interfaces/users/user.repo.interface';
 import { UserMetadataModel } from '../../domain.types/users/user.types';
 import { uuid } from '../../domain.types/miscellaneous/system.types';
 import { ITenantRepo } from '../../database/repository.interfaces/tenant/tenant.repo.interface';
 import { IUserMetadataRepo } from '../../database/repository.interfaces/users/user.metadata.repo.interface';
-import { IUserRoleRepo } from '../../database/repository.interfaces/authorization/user.role.repo.interface';
 import { IUserPasswordRepo } from '../../database/repository.interfaces/users/user.password.repo.interface';
 import { SupportedLanguage } from '../../domain.types/users/user.enums';
 
@@ -18,8 +16,6 @@ export class UserMetadataService {
 
     constructor(
         @inject('IUserRepo') private _userRepo: IUserRepo,
-        @inject('IUserRoleRepo') private _userRoleRepo: IUserRoleRepo,
-        @inject('IRoleRepo') private _roleRepo: IRoleRepo,
         @inject('IUserOtpRepo') private _otpRepo: IUserOtpRepo,
         @inject('IUserPasswordRepo') private _userPasswordRepo: IUserPasswordRepo,
         @inject('IUserSessionRepo') private _userSessionRepo: IUserSessionRepo,

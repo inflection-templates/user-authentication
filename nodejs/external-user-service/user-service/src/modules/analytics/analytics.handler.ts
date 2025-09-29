@@ -89,7 +89,7 @@ export class AnalyticsHandler {
             var body = {
                 id                : user.id,
                 TenantId          : tenantId,
-                RoleId            : user.Roles?.map(x => x.id),
+                RoleId            : [],
                 OnboardingSource  : 'Unknown',
                 TimezoneOffsetMin : timezoneOffsetMinutes,
                 RegistrationDate  : user.CreatedAt ?? new Date(),

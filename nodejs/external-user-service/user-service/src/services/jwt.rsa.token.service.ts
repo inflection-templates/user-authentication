@@ -223,7 +223,7 @@ export class JwtRsaTokenService {
             displayName: user.DisplayName || user.displayName,
             tenantName: user.TenantName || user.tenantName,
             tenantId: user.TenantId || user.tenantId,
-            role: role || (user.Roles && user.Roles[0]?.Name),
+            role: role,
             sessionId: sessionId
         };
     }

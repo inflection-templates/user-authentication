@@ -14,8 +14,6 @@ import {
     UserUpdateModel,
 } from '../../../../../domain.types/users/user.types';
 import UserMetadata from '../../models/users/user.metadata.model';
-import UserRole from '../../models/authorization/user.role.model';
-import Role from '../../models/authorization/role.model';
 import UserPassword from '../../models/users/user.password.model';
 import UserOtp from '../../models/users/user.otp.model';
 import UserSession from '../../models/users/user.session.model';
@@ -102,20 +100,7 @@ export class UserRepo implements IUserRepo {
                 }
             });
             const tenant = await Tenant.findByPk(user.TenantId);
-            const userRoles = await UserRole.findAll({
-                where : {
-                    UserId : id
-                },
-                include : [
-                    {
-                        model : Role,
-                        as    : 'Role'
-                    }
-                ]
-            });
-            const roles = userRoles.map(x => x.Role);
-
-            const dto = await UserMapper.toDto(user, metadata, tenant, roles);
+            const dto = await UserMapper.toDto(user, metadata, tenant);
             // logger.info(`User mapper DTO: ${JSON.stringify(dto)}`);
             return dto;
 
@@ -267,11 +252,6 @@ export class UserRepo implements IUserRepo {
                 return false;
             }
             await UserMetadata.destroy({
-                where : {
-                    UserId : id
-                }
-            });
-            await UserRole.destroy({
                 where : {
                     UserId : id
                 }

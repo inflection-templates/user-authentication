@@ -32,14 +32,5 @@ export interface ITenantRepo {
 
     delete(id: uuid, hardDelete?: boolean): Promise<boolean>;
 
-    promoteTenantUserAsAdmin(id: uuid, userId: uuid): Promise<boolean>;
-
-    demoteAdmin(id: uuid, userId: uuid): Promise<boolean>;
-
-    getTenantStats(id: uuid): Promise<any>;
-
-    getTenantAdmins(id: uuid): Promise<any[]>;
-
-    getTenantRegularUsers(id: uuid): Promise<any[]>;
 
 }

@@ -494,7 +494,7 @@ export class UserAuthController extends BaseController {
             AccessToken       : accessToken,
             RefreshToken      : refreshToken,
             User              : user,
-            Roles             : user.Roles,
+            Roles             : [],
             IsProfileComplete : isProfileComplete,
             SessionId         : result.SessionId,
             ExpiresAt         : result.ExpiresAt

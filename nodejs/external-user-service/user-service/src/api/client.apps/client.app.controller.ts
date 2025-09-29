@@ -7,7 +7,6 @@ import { ApiError } from '../../common/api.error';
 import { Injector } from '../../startup/injector';
 import { ClientAppDto, ClientAppCreateModel } from '../../domain.types/client.apps/client.app.types';
 import { BaseController } from '../base.controller';
-import { DefaultRoleTypes } from '../../domain.types/authorization/enums';
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -145,14 +144,10 @@ export class ClientAppController extends BaseController {
     };
 
     authorizeSearch = (request: express.Request) => {
+        // Simplified authorization - just check if user is authenticated
         const currentUser = request.currentUser;
-        if (currentUser != null) {
-            const roles = currentUser.Roles;
-            const roleNames = roles.map(r => r.Name);
-            if (!roleNames.includes(DefaultRoleTypes.SystemAdmin) &&
-                !roleNames.includes(DefaultRoleTypes.SystemUser)) {
-                throw new ApiError(403, `Unauthorized`);
-            }
+        if (!currentUser) {
+            throw new ApiError(403, `Unauthorized`);
         }
     };
 

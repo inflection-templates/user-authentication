@@ -6,7 +6,6 @@ import { logger } from '../../logger/logger';
 import { TimeHelper } from '../../common/time.helper';
 import { ConfigurationManager } from '../../config/configuration.manager';
 import { IUserOtpRepo } from '../../database/repository.interfaces/users/user.otp.repo.interface';
-import { IRoleRepo } from '../../database/repository.interfaces/authorization/role.repo.interface';
 import { IUserRepo } from '../../database/repository.interfaces/users/user.repo.interface';
 import { CurrentUser } from '../../domain.types/miscellaneous/current.user';
 import { OtpModel } from '../../domain.types/users/user.otp.types';
@@ -37,7 +36,6 @@ import { UserAuthHandler } from '../../auth/user.auth/user.auth.handler';
 import { EmailService } from '../../modules/communication/email/email.service';
 import { EmailDetails } from '../../modules/communication/email/email.details';
 import { IUserMetadataRepo } from '../../database/repository.interfaces/users/user.metadata.repo.interface';
-import { IUserRoleRepo } from '../../database/repository.interfaces/authorization/user.role.repo.interface';
 import { IUserPasswordRepo } from '../../database/repository.interfaces/users/user.password.repo.interface';
 import { OTPScope, UserLoginMethod, OTPChannel } from '../../domain.types/users/user.enums';
 import { UserAccountActionResult } from '../../domain.types/users/user.types';
@@ -49,8 +47,6 @@ export class UserAuthService {
 
     constructor(
         @inject('IUserRepo') private _userRepo: IUserRepo,
-        @inject('IUserRoleRepo') private _userRoleRepo: IUserRoleRepo,
-        @inject('IRoleRepo') private _roleRepo: IRoleRepo,
         @inject('IUserOtpRepo') private _otpRepo: IUserOtpRepo,
         @inject('IUserPasswordRepo') private _userPasswordRepo: IUserPasswordRepo,
         @inject('IUserSessionRepo') private _userSessionRepo: IUserSessionRepo,
@@ -669,7 +665,7 @@ export class UserAuthService {
             PhoneNumber : user.PhoneNumber,
             Email       : user.Email,
             UserName    : user.UserName,
-            Roles       : user.Roles,
+            Roles       : [],
             SessionId   : session.id,
             IsTestUser  : isTestUser,
         };

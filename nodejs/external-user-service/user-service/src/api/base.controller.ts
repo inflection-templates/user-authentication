@@ -2,7 +2,6 @@
 import express from "express";
 import { uuid } from "../domain.types/miscellaneous/system.types";
 import { ApiError } from "../common/api.error";
-import { PermissionHandler } from "../auth/user.auth/custom/permission.handler";
 import { TenantService } from "../services/tenant/tenant.service";
 import { Injector } from "../startup/injector";
 import { UserService } from "../services/users/user.service";
@@ -44,9 +43,9 @@ export class BaseController {
         request.resourceOwnerUserId = ownerUserId;
         request.resourceTenantId = tenantId;
 
-        const permitted = await PermissionHandler.checkFineGrained(request);
-        if (!permitted) {
-            throw new ApiError(403, 'Permission denied.');
+        // Authorization simplified - only check if user is authenticated
+        if (!request.currentUser) {
+            throw new ApiError(403, 'User must be authenticated.');
         }
     };
 

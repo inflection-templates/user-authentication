@@ -9,7 +9,6 @@ import { UserService } from '../../../services/users/user.service';
 import { TenantService } from '../../../services/tenant/tenant.service';
 import { Injector } from '../../../startup/injector';
 import { uuid } from '../../../domain.types/miscellaneous/system.types';
-import { RoleService } from '../../../services/authorization/role.service';
 import { UserAuthService } from '../../../services/users/user.auth.service';
 import { JwtRsaTokenService } from '../../../services/jwt.rsa.token.service';
 
@@ -24,13 +23,11 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
 
     _tenantService: TenantService = null;
 
-    _roleService: RoleService = null;
 
     constructor() {
         this._userService = Injector.Container.resolve(UserService);
         this._userAuthService = Injector.Container.resolve(UserAuthService);
         this._tenantService = Injector.Container.resolve(TenantService);
-        this._roleService = Injector.Container.resolve(RoleService);
                 this._jwtRsaService = JwtRsaTokenService.getInstance();
     }
 
@@ -97,7 +94,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 UserName: claims.username || '',
                 SessionId: claims.sessionId,
                 IsTestUser: false, // Default value
-                Roles: claims.role ? [{ id: 'role-id', Name: claims.role }] : []
+                Roles: []
             };
 
             if (!currentUser.SessionId) {
@@ -168,7 +165,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
         if (!user) {
             throw ('Invalid user');
         }
-        const roles = user.Roles.map(r => ({ id: r.id, Name: r.Name }));
+        const roles: any[] = [];
         const tenant = await this._tenantService.getById(user.Tenant?.id);
         if (!tenant) {
             throw ('Invalid tenant');
@@ -207,7 +204,6 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
         var payload = {
             UserId     : currentUser.UserId,
             TenantId   : currentUser.TenantId,
-            Roles      : currentUser.Roles,
             SessionId  : currentUser.SessionId,
             IsTestUser : currentUser.IsTestUser,
         };
@@ -220,8 +216,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
             try {
                 // Use RSA JWT service instead of HMAC (like Python/C# implementations)
                 const sessionId = user.SessionId || 'default-session';
-                const role = user.Roles && user.Roles.length > 0 ? user.Roles[0].Name : undefined;
-                const token = this._jwtRsaService.generateToken(user, sessionId, role);
+                const token = this._jwtRsaService.generateToken(user, sessionId);
                 resolve(token);
             } catch (error) {
                 logger.error(`Error generating RSA JWT token: ${error.message}`);

@@ -17,10 +17,7 @@ import {
 import { UserMetadataService } from '../../../services/users/user.metadata.service';
 import { SupportedLanguage } from '../../../domain.types/users/user.enums';
 import { UserAuthService } from '../../../services/users/user.auth.service';
-import { UserRoleService } from '../../../services/authorization/user.role.service';
 import { ConfigurationManager } from '../../../config/configuration.manager';
-import { RoleService } from '../../../services/authorization/role.service';
-import { DefaultRoleTypes } from '../../../domain.types/authorization/enums';
 import { TenantService } from '../../../services/tenant/tenant.service';
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -36,10 +33,6 @@ export class UserController extends BaseController {
     _userMetadataService: UserMetadataService = Injector.Container.resolve(UserMetadataService);
 
     _userAuthService: UserAuthService = Injector.Container.resolve(UserAuthService);
-
-    _userRoleService: UserRoleService = Injector.Container.resolve(UserRoleService);
-    
-    _roleService: RoleService = Injector.Container.resolve(RoleService);
 
     _tenantService: TenantService = Injector.Container.resolve(TenantService);
 
@@ -59,9 +52,9 @@ export class UserController extends BaseController {
                 
                 // If no tenant with code 'default', use the first available tenant
                 if (!defaultTenant) {
-                    const allTenants = await this._tenantService.search({ 
-                        PageIndex: 0, 
-                        ItemsPerPage: 1 
+                    const allTenants = await this._tenantService.search({
+                        PageIndex: 0,
+                        ItemsPerPage: 1
                     });
                     if (allTenants && allTenants.Items && allTenants.Items.length > 0) {
                         defaultTenant = allTenants.Items[0];
@@ -146,15 +139,6 @@ export class UserController extends BaseController {
                 }
                 //ELSE - The user could use reset password flow to setup the password
             }
-
-            if (model.RoleIds?.length === 0) {
-                const defaultRole = await this._roleService.getByName(DefaultRoleTypes.BaseUser);
-                if (defaultRole) {
-                    model.RoleIds.push(defaultRole.id);
-                }
-            }
-
-            await this._userRoleService.addUserRoles(user.id, model.RoleIds, user.Tenant?.id);
 
             UserEvents.onUserCreated(request, user);
 
@@ -247,9 +231,8 @@ export class UserController extends BaseController {
             }
             await this.authorizeOne(request, userId, user.Tenant?.id);
 
-            // Delete user metadata, roles, device details and user auth
+            // Delete user metadata and device details
             await this._userMetadataService.delete(userId);
-            await this._userRoleService.removeAllUserRoles(userId);
             await this._userDeviceDetailsService.deleteByUserId(userId);
 
             const userDeleted = await this._service.delete(userId);

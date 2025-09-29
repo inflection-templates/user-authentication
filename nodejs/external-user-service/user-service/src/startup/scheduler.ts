@@ -1,7 +1,6 @@
 import * as cron from 'node-cron';
 import * as CronSchedules from '../../seed.data/cron.schedules.json';
 import { logger } from '../logger/logger';
-import { FileResourceService } from '../services/general/file.resource.service';
 import { Injector } from './injector';
 import { UserService } from '../services/users/user.service';
 import { RunOnceScheduler } from '../modules/run.once.scripts/run.once.scheduler';
@@ -32,7 +31,6 @@ export class Scheduler {
     public schedule = async (): Promise<boolean> => {
         return new Promise((resolve, reject) => {
             try {
-                this.scheduleFileCleanup();
                 // this.scheduleCurrentTimezoneUpdate();
                 const runOnceScheduler = RunOnceScheduler.instance();
                 runOnceScheduler.schedule(Scheduler._schedules);
@@ -49,15 +47,6 @@ export class Scheduler {
 
     //#region Privates
 
-    private scheduleFileCleanup = () => {
-        cron.schedule(Scheduler._schedules['FileCleanup'], () => {
-            (async () => {
-                logger.info('Running scheducled jobs: temp file clean-up...');
-                var service = Injector.Container.resolve(FileResourceService);
-                await service.cleanupTempFiles();
-            })();
-        });
-    };
 
     // private scheduleCurrentTimezoneUpdate = () => {
     //     cron.schedule(Scheduler._schedules['ScheduleTimezoneUpdate'], () => {
