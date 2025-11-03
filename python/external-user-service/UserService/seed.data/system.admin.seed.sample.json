@@ -1,0 +1,9 @@
+{
+    "FirstName": "system-admin",
+    "PhoneNumber": "+91-0000000000",
+    "Email": "support@gmail.com",
+    "UserName": "admin",
+    "Password": "<admin-password>",
+    "DefaultTimeZone": "+05:30",
+    "CurrentTimeZone": "+05:30"
+}
