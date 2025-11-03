@@ -114,12 +114,25 @@ export class ClientAppService {
                         ApiKey       : c['ApiKey'],
                     };
                     client = await this._clientAppRepo.create(model);
+                } else {
+                    // Update existing client with new data
+                    const updateModel: ClientAppCreateModel = {
+                        ClientName   : c['ClientName'],
+                        IsPrivileged : c['IsPrivileged'],
+                        Email        : c['Email'],
+                        Password     : c['Password'],
+                        ApiKey       : c['ApiKey'],
+                    };
+                    client = await this._clientAppRepo.update(client.id, updateModel);
+                    logger.info(`Updated existing client: ${c.ClientCode}`);
                 }
             }
             logger.info('Internal clients seeded successfully!');
             return true;
         } catch (error) {
             logger.info('Error occurred while seeding internal clients!');
+            logger.info(`Seeding error details: ${error.message}`);
+            logger.info(`Error stack: ${error.stack}`);
             return false;
         }
     };

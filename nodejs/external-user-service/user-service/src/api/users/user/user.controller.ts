@@ -148,7 +148,7 @@ export class UserController extends BaseController {
             }
 
             if (model.RoleIds?.length === 0) {
-                const defaultRole = await this._roleService.getByName(DefaultRoleTypes.BaseUser);
+                const defaultRole = await this._roleService.getByName(DefaultRoleTypes.User);
                 if (defaultRole) {
                     model.RoleIds.push(defaultRole.id);
                 }

@@ -22,7 +22,7 @@ import { Helper } from '../../../../../common/helper';
 @Table({
     timestamps      : true,
     modelName       : 'ClientApp',
-    tableName       : 'api_clients',
+    tableName       : 'client_app',
     paranoid        : true,
     freezeTableName : true,
 })

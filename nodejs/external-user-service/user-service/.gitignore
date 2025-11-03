@@ -134,3 +134,15 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# seeddata
+
+seed.data/internal.clients.seed.json
+seed.data/system.admin.seed.json
+seed.data/system.roles.seed.json
+seed.data/system.permissions.seed.json
+seed.data/system.role.permissions.seed.json
+seed.data/platform.info.json
+seed.data/default.tenant.seed.json
+seed.data/default.clientapps.seed.json
+

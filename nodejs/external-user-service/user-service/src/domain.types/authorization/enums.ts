@@ -9,6 +9,5 @@ export enum PermissionScope {
 export enum DefaultRoleTypes {
     SystemAdmin = 'System admin',
     SystemUser  = 'System user',
-    TenantAdmin = 'Tenant admin',
-    BaseUser    = 'Base user',
+    User        = 'User',
 }

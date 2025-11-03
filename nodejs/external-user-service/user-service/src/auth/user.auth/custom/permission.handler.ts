@@ -50,8 +50,8 @@ export class PermissionHandler {
             return true;
         }
 
-        if (roleNames.includes(DefaultRoleTypes.TenantAdmin)) {
-            // Tenant Admin has access to all resources in the tenant scope
+        if (roleNames.includes(DefaultRoleTypes.SystemUser)) {
+            // System User has access to all resources in the tenant scope
             if (request.resourceTenantId === currentUser.TenantId
               && request.actionScope === ActionScope.Tenant) {
                 return true;

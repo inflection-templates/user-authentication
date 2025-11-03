@@ -223,13 +223,13 @@ export class TenantRepo implements ITenantRepo {
 
     promoteTenantUserAsAdmin = async (tenantId: uuid, userId: uuid): Promise<boolean> => {
         try {
-            const tenantUserRole = await Role.findOne({ where: { Name: DefaultRoleTypes.BaseUser } });
+            const tenantUserRole = await Role.findOne({ where: { Name: DefaultRoleTypes.User } });
             if (tenantUserRole == null) {
                 throw new Error(`Tenant user role not found!`);
             }
-            const tenantAdminRole = await Role.findOne({ where: { Name: DefaultRoleTypes.TenantAdmin } });
+            const tenantAdminRole = await Role.findOne({ where: { Name: DefaultRoleTypes.SystemUser } });
             if (tenantAdminRole == null) {
-                throw new Error(`Tenant admin role not found!`);
+                throw new Error(`System user role not found!`);
             }
             var tenantUser = await User.findOne(
                 {
@@ -289,13 +289,13 @@ export class TenantRepo implements ITenantRepo {
 
     demoteAdmin = async (tenantId: uuid, userId: uuid): Promise<boolean> => {
         try {
-            const tenantUserRole = await Role.findOne({ where: { Name: DefaultRoleTypes.BaseUser } });
+            const tenantUserRole = await Role.findOne({ where: { Name: DefaultRoleTypes.User } });
             if (tenantUserRole == null) {
                 throw new Error(`Tenant user role not found!`);
             }
-            const tenantAdminRole = await Role.findOne({ where: { Name: DefaultRoleTypes.TenantAdmin } });
+            const tenantAdminRole = await Role.findOne({ where: { Name: DefaultRoleTypes.SystemUser } });
             if (tenantAdminRole == null) {
-                throw new Error(`Tenant admin role not found!`);
+                throw new Error(`System user role not found!`);
             }
             var user = await User.findOne(
                 {
@@ -334,13 +334,13 @@ export class TenantRepo implements ITenantRepo {
             if (tenant == null) {
                 throw new Error(`Tenant not found!`);
             }
-            const tenantUserRole = await Role.findOne({ where: { Name: DefaultRoleTypes.BaseUser } });
+            const tenantUserRole = await Role.findOne({ where: { Name: DefaultRoleTypes.User } });
             if (tenantUserRole == null) {
                 throw new Error(`Tenant user role not found!`);
             }
-            const tenantAdminRole = await Role.findOne({ where: { Name: DefaultRoleTypes.TenantAdmin } });
+            const tenantAdminRole = await Role.findOne({ where: { Name: DefaultRoleTypes.SystemUser } });
             if (tenantAdminRole == null) {
-                throw new Error(`Tenant admin role not found!`);
+                throw new Error(`System user role not found!`);
             }
             const usersCount = await User.count({ where: { TenantId: id } });
             const adminUsersCount = await User.count({ where: { TenantId: id, RoleId: tenantAdminRole.id } });
@@ -360,9 +360,9 @@ export class TenantRepo implements ITenantRepo {
 
     getTenantAdmins = async (id: uuid): Promise<any[]> => {
         try {
-            const role = await Role.findOne({ where: { Name: DefaultRoleTypes.TenantAdmin } });
+            const role = await Role.findOne({ where: { Name: DefaultRoleTypes.SystemUser } });
             if (role == null) {
-                throw new Error(`Tenant admin role not found!`);
+                throw new Error(`System user role not found!`);
             }
             const tenantAdmins = await UserRole.findAll({
                 where : {
@@ -399,7 +399,7 @@ export class TenantRepo implements ITenantRepo {
 
     getTenantRegularUsers = async (id: uuid): Promise<any[]> => {
         try {
-            const role = await Role.findOne({ where: { Name: DefaultRoleTypes.BaseUser } });
+            const role = await Role.findOne({ where: { Name: DefaultRoleTypes.User } });
             if (role == null) {
                 throw new Error(`Tenant user role not found!`);
             }

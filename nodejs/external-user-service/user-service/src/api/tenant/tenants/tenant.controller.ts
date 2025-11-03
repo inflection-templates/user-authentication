@@ -58,7 +58,7 @@ export class TenantController extends BaseController {
             }
 
             const adminPassword = model.Password ?? Helper.generatePassword();
-            const role = await this._roleService.getByName(DefaultRoleTypes.TenantAdmin);
+            const role = await this._roleService.getByName(DefaultRoleTypes.SystemUser);
             const userModel: UserCreateModel = {
                 PhoneCode   : tenant.PhoneCode,
                 PhoneNumber : tenant.PhoneNumber,

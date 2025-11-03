@@ -22,20 +22,12 @@ export const DefaultRoles = [
         Scope        : PermissionScope.System,
     },
     {
-        Role         : DefaultRoleTypes.TenantAdmin,
-        Description  : 'An admin specific to a tenant. Capable of managing a tenant, resources, and users within that tenant.',
-        IsSystemRole : true,
-        IsUserRole   : true,
-        SeederFile   : 'permissions.tenant.admin.json',
-        Scope        : PermissionScope.Tenant,
-    },
-    {
-        Role         : DefaultRoleTypes.BaseUser,
+        Role         : DefaultRoleTypes.User,
         Description  : 'A basic user role. Can edit their own profile and view basic information.',
         IsSystemRole : false,
         IsUserRole   : true,
         SeederFile   : 'permissions.base.user.json',
-        Scope        : PermissionScope.Tenant,
+        Scope        : PermissionScope.User,
     }
 
 ];

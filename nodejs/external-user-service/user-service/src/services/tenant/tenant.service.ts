@@ -92,12 +92,12 @@ export class TenantService {
             }
 
             var tenant: TenantCreateModel = {
-                Name        : 'default',
+                Name        : 'Default',
                 Description : 'Default Tenant',
                 TenantCode  : 'default',
                 PhoneCode   : '+91',
                 PhoneNumber : '0000000000',
-                Email       : tenantEmail ?? 'support@inflectionzone.com',
+                Email       : tenantEmail ?? 'support@gmail.com',
             };
             var defaultTenant = await this._tenantRepo.create(tenant);
             return defaultTenant;
