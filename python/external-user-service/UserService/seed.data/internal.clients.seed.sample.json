@@ -1,0 +1,10 @@
+[
+    {
+        "ClientCode": "CLIENT01",
+        "ClientName": "client app",
+        "Email": "support@example.com",
+        "Password": "<client-password>",
+        "ApiKey": "<api-key>",
+        "IsPrivileged": true
+    }
+]

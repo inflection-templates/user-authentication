@@ -126,7 +126,7 @@ async def seed_data():
         # Seed default tenant
         default_tenant = TenantEntity(
             id=str(uuid4()),
-            name="Default Tenant",
+            name="Default",
             code="default",
             description="Default tenant for the system",
             is_active=True,
@@ -140,7 +140,7 @@ async def seed_data():
         default_client_app = ClientAppEntity(
             id=str(uuid4()),
             tenant_id=default_tenant.id,
-            name="Default Client",
+            name="Default",
             client_code="default_client",
             description="Default client application",
             is_active=True,
@@ -162,6 +162,17 @@ async def seed_data():
             updated_at=datetime.utcnow()
         )
         
+        system_user_role = RoleEntity(
+            id=str(uuid4()),
+            tenant_id=default_tenant.id,
+            name="SystemUser",
+            description="System User with elevated privileges",
+            is_system_role=True,
+            is_active=True,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        
         user_role = RoleEntity(
             id=str(uuid4()),
             tenant_id=default_tenant.id,
@@ -174,6 +185,7 @@ async def seed_data():
         )
         
         session.add(admin_role)
+        session.add(system_user_role)
         session.add(user_role)
         await session.flush()
         

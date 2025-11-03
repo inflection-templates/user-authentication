@@ -155,6 +155,7 @@ class ClientAppEntity(Base):
     tenant_id = Column(String(36), nullable=True)
     name = Column(String(200), nullable=False)
     client_code = Column(String(50), unique=True, nullable=False, index=True)
+    apikey = Column(String(255), nullable=True, unique=True, index=True)
     description = Column(String(1000), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
