@@ -1,0 +1,65 @@
+meta {
+  name: Twitter OAuth - Step 1 Get Login URL
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/oauth/twitter/challenge
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct structure", function() {
+    expect(res.getBody()).to.have.property('success');
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('data');
+    expect(res.getBody().success).to.be.true;
+    expect(res.getBody().message).to.equal("Twitter login link generated successfully!");
+  });
+  
+  test("Response has URL property", function() {
+    expect(res.getBody().data).to.have.property('Url');
+    expect(res.getBody().data.Url).to.be.a('string');
+  });
+  
+  test("URL contains Twitter/X", function() {
+    expect(res.getBody().data.Url).to.include('twitter.com');
+  });
+  
+  test("URL contains required OAuth 2.0 PKCE parameters", function() {
+    const authUrl = res.getBody().data.Url;
+    expect(authUrl).to.include('client_id=');
+    expect(authUrl).to.include('redirect_uri=');
+    expect(authUrl).to.include('scope=');
+    expect(authUrl).to.include('state=');
+    expect(authUrl).to.include('code_challenge=');
+    expect(authUrl).to.include('code_challenge_method=S256');
+    expect(authUrl).to.include('response_type=code');
+  });
+  
+  test("Log the authorization URL for manual testing", function() {
+    const authUrl = res.getBody().data.Url;
+    console.log("🐦 Twitter/X Authorization URL:");
+    console.log(authUrl);
+    console.log("📝 Copy this URL and open it in your browser");
+    console.log("🔄 After Twitter/X login, you'll be redirected to your configured redirect URI");
+    console.log("📋 The redirect will contain a 'code' parameter that you can use for Step 2");
+    console.log("⚠️  Twitter/X App Requirements:");
+    console.log("   - App must be configured with OAuth 2.0 settings");
+    console.log("   - App must have correct redirect URI configured:");
+    console.log("   http://localhost:5000/api/v1/oauth/twitter/callback");
+    console.log("   - App must have 'tweet.read' and 'users.read' scopes");
+  });
+}

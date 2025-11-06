@@ -1,0 +1,75 @@
+meta {
+  name: Twitter OAuth - Step 2 Test Callback
+  type: http
+  seq: 21
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/oauth/twitter/callback
+  body: none
+  auth: none
+}
+
+params:query {
+  code: YOUR_REAL_TWITTER_CODE_HERE
+  state: twitter_oauth_state
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+}
+
+tests {
+  test("Should return success response (200)", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct structure", function() {
+    expect(res.getBody()).to.have.property('success');
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('data');
+    expect(res.getBody().success).to.be.true;
+  });
+  
+  test("Response should contain user data and tokens", function() {
+    expect(res.getBody().data).to.have.property('token');
+    expect(res.getBody().data).to.have.property('refreshToken');
+    expect(res.getBody().data).to.have.property('expiration');
+    expect(res.getBody().data).to.have.property('userId');
+    expect(res.getBody().data).to.have.property('userName');
+    expect(res.getBody().data).to.have.property('sessionId');
+    expect(res.getBody().data).to.have.property('validTill');
+  });
+  
+  test("Log instructions for real testing", function() {
+    console.log("📋 To test with real Twitter/X OAuth code:");
+    console.log("1. Run 'Twitter OAuth - Step 1 Get Login URL'");
+    console.log("2. Copy the authorization URL from the response");
+    console.log("3. Open the URL in your browser");
+    console.log("4. Sign in with Twitter/X");
+    console.log("5. Authorize your application");
+    console.log("6. Copy the 'code' parameter from the callback URL");
+    console.log("7. Replace 'YOUR_REAL_TWITTER_CODE_HERE' with the real code");
+    console.log("8. Run this request again");
+    console.log("9. You should get a successful login response with tokens");
+    console.log("⚠️  Twitter/X App Configuration Notes:");
+    console.log("   - App must be configured with OAuth 2.0 (not OAuth 1.0a)");
+    console.log("   - App must have correct callback URL");
+    console.log("   - Email access requires special approval from Twitter");
+    console.log("   - Without email access, username will be used as fallback");
+  });
+  
+  test("Store tokens in environment if successful", function() {
+    if (res.getStatus() === 200 && res.getBody().data && res.getBody().data.token) {
+      bru.setEnvVar("TWITTER_OAUTH_TOKEN", res.getBody().data.token);
+      bru.setEnvVar("TWITTER_OAUTH_REFRESH_TOKEN", res.getBody().data.refreshToken);
+      bru.setEnvVar("TWITTER_OAUTH_USER_ID", res.getBody().data.userId);
+      bru.setEnvVar("TWITTER_OAUTH_USERNAME", res.getBody().data.userName);
+      bru.setEnvVar("TWITTER_OAUTH_SESSION_ID", res.getBody().data.sessionId);
+      bru.setEnvVar("TWITTER_OAUTH_VALID_TILL", res.getBody().data.validTill);
+      console.log("✅ Twitter/X OAuth tokens stored in environment variables");
+    }
+  });
+}

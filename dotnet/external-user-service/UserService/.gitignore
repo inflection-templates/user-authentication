@@ -10,6 +10,8 @@ shala.api/static.content/seed.data/system.admin.seed.json
 shala.api/appsettings.local.json
 shala.api/appsettings.test.json
 
+shala.api/static.content/
+
 shala.api/storage/
 
 

@@ -1,0 +1,67 @@
+meta {
+  name: GitHub OAuth - Step 2 Test Callback
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/oauth/github/callback
+  body: none
+  auth: none
+}
+
+params:query {
+  code: YOUR_REAL_GITHUB_CODE_HERE
+  state: github_oauth_state
+}
+
+headers {
+  Content-Type: application/json
+}
+
+tests {
+  test("Should return success response (200)", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has correct structure", function() {
+    expect(res.getBody()).to.have.property('success');
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('data');
+    expect(res.getBody().success).to.be.true;
+  });
+  
+  test("Response should contain user data and tokens", function() {
+    expect(res.getBody().data).to.have.property('Token');
+    expect(res.getBody().data).to.have.property('RefreshToken');
+    expect(res.getBody().data).to.have.property('Expiration');
+    expect(res.getBody().data).to.have.property('UserId');
+    expect(res.getBody().data).to.have.property('Username');
+    expect(res.getBody().data).to.have.property('SessionId');
+    expect(res.getBody().data).to.have.property('ValidTill');
+  });
+  
+  test("Log instructions for real testing", function() {
+    console.log("📋 To test with real GitHub OAuth code:");
+    console.log("1. Run 'GitHub OAuth - Step 1 Get Login URL'");
+    console.log("2. Copy the authorization URL from the response");
+    console.log("3. Open the URL in your browser");
+    console.log("4. Sign in with GitHub");
+    console.log("5. Copy the 'code' parameter from the callback URL");
+    console.log("6. Replace 'YOUR_REAL_GITHUB_CODE_HERE' with the real code");
+    console.log("7. Run this request again");
+    console.log("8. You should get a successful login response with tokens");
+  });
+  
+  test("Store tokens in environment if successful", function() {
+    if (res.getStatus() === 200 && res.getBody().data && res.getBody().data.Token) {
+      bru.setEnvVar("GITHUB_OAUTH_TOKEN", res.getBody().data.Token);
+      bru.setEnvVar("GITHUB_OAUTH_REFRESH_TOKEN", res.getBody().data.RefreshToken);
+      bru.setEnvVar("GITHUB_OAUTH_USER_ID", res.getBody().data.UserId);
+      bru.setEnvVar("GITHUB_OAUTH_USERNAME", res.getBody().data.Username);
+      bru.setEnvVar("GITHUB_OAUTH_SESSION_ID", res.getBody().data.SessionId);
+      bru.setEnvVar("GITHUB_OAUTH_VALID_TILL", res.getBody().data.ValidTill);
+      console.log("✅ GitHub OAuth tokens stored in environment variables");
+    }
+  });
+}
