@@ -1,0 +1,14 @@
+[
+    {
+        "Code": "<Client App Code>",
+        "Name": "<Client App Name>",
+        "Description": "<Client App Description>",
+        "Type": "Internal",
+        "RedirectUri": "<Redirect URI>",
+        "LogoUrl": "<Logo URL>",
+        "WebsiteUrl": "<Website URL>",
+        "PrivacyPolicyUrl": "<Privacy Policy URL>",
+        "TermsOfServiceUrl": "<Terms of Service URL>"
+    }
+]
+

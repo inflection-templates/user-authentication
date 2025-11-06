@@ -1,0 +1,10 @@
+# Ignore seed data files with sensitive information
+static.content/seed.data/default.clientapps.seed.json
+static.content/seed.data/system.admin.seed.json
+static.content/seed.data/default.tenant.seed.json
+
+# Ignore appsettings.json with sensitive configuration
+appsettings.json
+
+
+
