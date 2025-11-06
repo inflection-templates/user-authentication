@@ -104,7 +104,7 @@ public class TenantController
                 return ResponseHandler.InternalServerError("Tenant admin user cannot be created");
             }
 
-            var role = await _roleService.GetByNameAsync("TenantAdmin");
+            var role = await _roleService.GetByNameAsync("SystemUser");
             if (role == null)
             {
                 return ResponseHandler.InternalServerError("Role not found");
@@ -217,8 +217,8 @@ public class TenantController
         {
             return false;
         }
-        var isTenantAdmin = currentUser.Role == DefaultRoles.TenantAdmin.ToString();
-        if (!isTenantAdmin)
+        var isSystemUser = currentUser.Role == DefaultRoles.SystemUser.ToString();
+        if (!isSystemUser)
         {
             return false;
         }

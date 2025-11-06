@@ -33,6 +33,8 @@ public class ClientAppDbModel : IDbModel
 
     public bool Verified { get; set; } = false;
 
+    public string? ApiKey { get; set; } = null!;
+
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTime CreatedAt { get; set; }
 

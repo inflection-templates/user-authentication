@@ -119,6 +119,58 @@ public static class OAuthRoutes
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status404NotFound);
 
+        router.MapGet("/facebook/challenge", async (
+            [FromServices] FacebookOAuthController controller,
+            HttpContext context) => {
+            return await controller.GetProviderLink_Facebook(context);
+        })
+        .WithName($"{BaseContextName}.ProviderLink.Facebook")
+        .WithOpenApi()
+        .Produces<IResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound);
+
+        router.MapGet("/facebook/callback", async (
+            [FromServices] FacebookOAuthController controller,
+            [FromQuery] string code,
+            [FromQuery] string state,
+            HttpContext context) => {
+            var result = await controller.Login(context, "Facebook", code, state);
+            return result;
+        })
+        .WithName($"{BaseContextName}.Callback.Facebook")
+        .WithOpenApi()
+        .Produces<IResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
+
+        router.MapGet("/twitter/challenge", async (
+            [FromServices] TwitterOAuthController controller,
+            HttpContext context) => {
+            return await controller.GetProviderLink_Twitter(context);
+        })
+        .WithName($"{BaseContextName}.ProviderLink.Twitter")
+        .WithOpenApi()
+        .Produces<IResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound);
+
+        router.MapGet("/twitter/callback", async (
+            [FromServices] TwitterOAuthController controller,
+            [FromQuery] string code,
+            [FromQuery] string state,
+            HttpContext context) => {
+            var result = await controller.Login(context, "Twitter", code, state);
+            return result;
+        })
+        .WithName($"{BaseContextName}.Callback.Twitter")
+        .WithOpenApi()
+        .Produces<IResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
+
     }
 
 }

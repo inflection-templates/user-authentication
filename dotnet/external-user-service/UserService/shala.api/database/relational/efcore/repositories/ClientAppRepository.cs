@@ -80,6 +80,10 @@ public class ClientAppRepository : IClientAppRepository
         {
             record.Description = model.Description;
         }
+        if (model.ApiKey != null)
+        {
+            record.ApiKey = model.ApiKey;
+        }
         Context.ClientApps.Update(record);
         var recordsUpdated = await Context.SaveChangesAsync();
         if (recordsUpdated == 0)

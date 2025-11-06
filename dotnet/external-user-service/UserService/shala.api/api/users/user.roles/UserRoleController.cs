@@ -48,14 +48,14 @@ public class UserRoleController
             {
                 return ResponseHandler.BadRequest("Cannot assign system admin role to user");
             }
-            if (role.Name == DefaultRoles.TenantAdmin.ToString())
+            if (role.Name == DefaultRoles.SystemUser.ToString())
             {
                 var isSystemAdmin = currentUser.Role == DefaultRoles.SystemAdmin.ToString();
-                var isTenantAdmin = currentUser.Role == DefaultRoles.TenantAdmin.ToString() &&
-                                    currentUser.TenantId == user.TenantId;
-                if (!isSystemAdmin && !isTenantAdmin)
+                var isSystemUser = currentUser.Role == DefaultRoles.SystemUser.ToString() &&
+                                   currentUser.TenantId == user.TenantId;
+                if (!isSystemAdmin && !isSystemUser)
                 {
-                    return ResponseHandler.Forbidden("Only system admin or tenant admin of same tenant can assign this role");
+                    return ResponseHandler.Forbidden("Only system admin or system user of same tenant can assign this role");
                 }
             }
             var added = await _userRoleService.AddRoleToUserAsync(userId, role.Id);
@@ -94,14 +94,14 @@ public class UserRoleController
             {
                 return ResponseHandler.BadRequest("Cannot remove system admin role assignment");
             }
-            if (role.Name == DefaultRoles.TenantAdmin.ToString())
+            if (role.Name == DefaultRoles.SystemUser.ToString())
             {
                 var isSystemAdmin = currentUser.Role == DefaultRoles.SystemAdmin.ToString();
-                var isTenantAdmin = currentUser.Role == DefaultRoles.TenantAdmin.ToString() &&
-                                    currentUser.TenantId == user.TenantId;
-                if (!isSystemAdmin && !isTenantAdmin)
+                var isSystemUser = currentUser.Role == DefaultRoles.SystemUser.ToString() &&
+                                   currentUser.TenantId == user.TenantId;
+                if (!isSystemAdmin && !isSystemUser)
                 {
-                    return ResponseHandler.Forbidden("Only system admin or tenant admin of same tenant can remove this role");
+                    return ResponseHandler.Forbidden("Only system admin or system user of same tenant can remove this role");
                 }
             }
             var removed = await _userRoleService.RemoveRoleFromUserAsync(userId, roleId);

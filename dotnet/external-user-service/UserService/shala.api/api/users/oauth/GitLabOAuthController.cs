@@ -90,7 +90,7 @@ public class GitLabOAuthController: BaseOAuthController
             var url = string.Empty;
             await Task.Run(() => {
                 var clientId = _configuration.GetValue<string>("OAuth:GitLab:ClientId");
-                var redirectUri = "http://localhost:5089/api/v1/oauth/gitlab/callback";
+                var redirectUri = "http://localhost:5000/api/v1/oauth/gitlab/callback";
                 var scope = "read_user email openid read_api api read_repository write_repository";
                 var state = Helper.GenerateRandomString(10);
                 url = $"https://gitlab.com/oauth/authorize?client_id={clientId}&redirect_uri={redirectUri}";
@@ -123,7 +123,7 @@ public class GitLabOAuthController: BaseOAuthController
             {
                 return ResponseHandler.InternalServerError("GitLab client secret not found.");
             }
-            var url = $"https://gitlab.com/oauth/token?client_id={clientId}&client_secret={clientSecret}&code={code}&grant_type=authorization_code&redirect_uri=http://localhost:5089/api/v1/oauth/gitlab/callback";
+            var url = $"https://gitlab.com/oauth/token?client_id={clientId}&client_secret={clientSecret}&code={code}&grant_type=authorization_code&redirect_uri=http://localhost:5000/api/v1/oauth/gitlab/callback";
             //TODO: Add logic to compare state
 
             var client = new HttpClient();

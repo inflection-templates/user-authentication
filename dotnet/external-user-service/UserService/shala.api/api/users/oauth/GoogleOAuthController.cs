@@ -53,7 +53,7 @@ public class GoogleOAuthController: BaseOAuthController
             var url = string.Empty;
             await Task.Run(() => {
                 var clientId = _configuration.GetValue<string>("OAuth:Google:ClientId");
-                var redirectUri = "http%3A%2F%2Flocalhost%3A5089%2Fapi%2Fv1%2Foauth%2Fgoogle%2Fcallback";
+                var redirectUri = _configuration.GetValue<string>("OAuth:Google:RedirectUri");
                 var scope = "openid%20profile%20email";
                 var state = Helper.GenerateRandomString(10);
                 url = $"https://accounts.google.com/o/oauth2/v2/auth";
@@ -80,7 +80,7 @@ public class GoogleOAuthController: BaseOAuthController
             var googleAuthUrl = "https://accounts.google.com/o/oauth2/token";
             var googleClientId = _configuration.GetValue<string>("OAuth:Google:ClientId");
             var googleClientSecret = _configuration.GetValue<string>("OAuth:Google:ClientSecret");
-            var redirectUri = "http://localhost:5089/api/v1/oauth/google/callback";
+            var redirectUri = "http://localhost:5000/api/v1/oauth/google/callback";
             var tokenUrl = $"{googleAuthUrl}?code={code}&client_id={googleClientId}&client_secret={googleClientSecret}&redirect_uri={redirectUri}&grant_type=authorization_code";
 
             var client = new HttpClient();

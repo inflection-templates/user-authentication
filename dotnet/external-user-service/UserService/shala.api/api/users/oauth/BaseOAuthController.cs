@@ -41,7 +41,7 @@ public class BaseOAuthController
             var providers = new List<string>();
             await Task.Run(() => {
                 providers = new List<string>() {
-                    "Google", "GitHub", "GitLab"
+                    "Google", "GitHub", "GitLab", "Facebook", "Twitter"
                 };
             });
             return ResponseHandler.Ok("Providers fetched successfully", providers);

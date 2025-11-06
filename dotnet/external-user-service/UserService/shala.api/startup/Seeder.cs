@@ -90,11 +90,29 @@ public static class Seeder
         {
             Log.Information("Seeding System admin...");
 
+            var tenantService = serviceProvider.GetRequiredService<ITenantService>();
             var roleService = serviceProvider.GetRequiredService<IRoleService>();
             var userService = serviceProvider.GetRequiredService<IUserService>();
             var userRoleService = serviceProvider.GetRequiredService<IUserRoleService>();
             var userAuthService = serviceProvider.GetRequiredService<IUserAuthService>();
             var userAuthProfileService = serviceProvider.GetRequiredService<IUserAuthProfileService>();
+            
+            // Ensure we have a tenant ID
+            if (tenantId == null || tenantId == Guid.Empty)
+            {
+                Log.Warning("Tenant ID is null or empty. Attempting to retrieve default tenant.");
+                var defaultTenant = await tenantService.GetByCodeAsync("default");
+                if (defaultTenant != null && defaultTenant.Id != Guid.Empty)
+                {
+                    tenantId = defaultTenant.Id;
+                    Log.Information("Retrieved default tenant ID: {TenantId}", tenantId);
+                }
+                else
+                {
+                    Log.Error("Could not retrieve default tenant. User will be created without tenant ID.");
+                }
+            }
+            
             var basePath = GetSeedDataFolderPath();
             var adminSeedPath = Path.Combine(basePath, "system.admin.seed.json");
             var jsonStr = File.ReadAllText(adminSeedPath);
@@ -127,6 +145,7 @@ public static class Seeder
                     PhoneNumber = adminModel.PhoneNumber,
                     TenantId    = tenantId,
                 };
+                Log.Information("Creating system admin user with TenantId: {TenantId}", tenantId);
                 user = await userService.CreateAsync(userCreateModel);
                 if (user == null)
                 {
@@ -150,7 +169,7 @@ public static class Seeder
             }
             else
             {
-                Log.Error("System admin account already exists");
+                Log.Information("System admin account already exists with ID: {UserId}, TenantId: {TenantId}", user.Id, user.TenantId);
                 if (role != null && role.Id != Guid.Empty)
                 {
                     var hasRole = await userRoleService.HasUserThisRoleAsync(user.Id, role.Id);
@@ -193,24 +212,31 @@ public static class Seeder
                 Log.Error("Tenant model is invalid or null for seeding.");
                 return null;
             }
-            var tenantCode = model.Code;
-            string password = model.Password;
+            var tenantCode = model.Code ?? "default";
 
-            Tenant? defaultTenant = await tenantService.GetByCodeAsync(tenantCode ?? "default");
+            Tenant? defaultTenant = await tenantService.GetByCodeAsync(tenantCode);
             if (defaultTenant != null)
             {
-                Log.Error("Default tenant already exists");
+                Log.Information("Default tenant already exists with ID: {TenantId}", defaultTenant.Id);
                 return defaultTenant;
             }
 
             var record = await tenantService.CreateAsync(model);
             if (record == null)
             {
-                Log.Error("Default tenant not created");
+                Log.Error("Default tenant not created. Attempting to retrieve existing tenant.");
+                // Try to get it again in case it was created by another process
+                defaultTenant = await tenantService.GetByCodeAsync(tenantCode);
+                if (defaultTenant != null)
+                {
+                    Log.Information("Retrieved existing default tenant with ID: {TenantId}", defaultTenant.Id);
+                    return defaultTenant;
+                }
+                return null;
             }
             else
             {
-                Log.Information("Default tenant seeded successfully");
+                Log.Information("Default tenant seeded successfully with ID: {TenantId}", record.Id);
             }
             return record;
             // For default tenant, there is no need for the tenant admin user to be added.
@@ -218,7 +244,22 @@ public static class Seeder
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error(ex, "Error seeding default tenant: {Message}", ex.Message);
+            // Try to retrieve existing tenant as fallback
+            try
+            {
+                var tenantService = serviceProvider.GetRequiredService<ITenantService>();
+                var existingTenant = await tenantService.GetByCodeAsync("default");
+                if (existingTenant != null)
+                {
+                    Log.Information("Retrieved existing default tenant as fallback with ID: {TenantId}", existingTenant.Id);
+                    return existingTenant;
+                }
+            }
+            catch (Exception fallbackEx)
+            {
+                Log.Error(fallbackEx, "Failed to retrieve existing tenant as fallback: {Message}", fallbackEx.Message);
+            }
         }
         return null;
     }
@@ -294,6 +335,13 @@ public static class Seeder
                     {
                         continue;
                     }
+
+                    // Update client app with the API key
+                    var updateModel = new ClientAppUpdateModel
+                    {
+                        ApiKey = apiKey
+                    };
+                    await clientAppService.UpdateAsync(clientApp.Id, updateModel);
 
                     Log.Information($"Client app {clientApp.Name} created with default API key");
 

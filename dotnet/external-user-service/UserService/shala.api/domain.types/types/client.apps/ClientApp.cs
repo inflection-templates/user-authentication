@@ -16,6 +16,7 @@ public class ClientApp
     public string? PrivacyPolicyUrl { get; set; } = null!;
     public string? TermsOfServiceUrl { get; set; } = null!;
     public bool Verified { get; set; } = false;
+    public string? ApiKey { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
@@ -37,6 +38,7 @@ public class ClientAppCreateModel
     public string? PrivacyPolicyUrl { get; set; } = null!;
     public string? TermsOfServiceUrl { get; set; } = null!;
     public bool Verified { get; set; } = false;
+    public string? ApiKey { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -52,6 +54,7 @@ public class ClientAppUpdateModel
     public string? PrivacyPolicyUrl { get; set; } = null!;
     public string? TermsOfServiceUrl { get; set; } = null!;
     public bool Verified { get; set; } = false;
+    public string? ApiKey { get; set; } = null!;
 }
 
 public class ClientAppSearchFilters : BaseSearchFilters

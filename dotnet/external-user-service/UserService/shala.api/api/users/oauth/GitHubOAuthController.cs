@@ -144,6 +144,7 @@ public class GitHubOAuthController: BaseOAuthController
                     firstName = names[0];
                     lastName = string.Join(' ', names[1..]);
                 }
+
             }
             var (loginResponse, mfaChallengeResponse) = await signupOrLoginAsync(context, email, firstName, lastName, "GitHub");
             if (mfaChallengeResponse != null)
@@ -252,3 +253,4 @@ public class GitHubOAuthController: BaseOAuthController
 
     #endregion
 }
+

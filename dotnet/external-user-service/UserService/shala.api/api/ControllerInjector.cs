@@ -14,6 +14,8 @@ public static class ControllerInjector
         builder.Services.AddScoped<GoogleOAuthController>();
         builder.Services.AddScoped<GitHubOAuthController>();
         builder.Services.AddScoped<GitLabOAuthController>();
+        builder.Services.AddScoped<FacebookOAuthController>();
+        builder.Services.AddScoped<TwitterOAuthController>();
         builder.Services.AddScoped<ClientAppController>();
         builder.Services.AddScoped<ApiKeyController>();
         builder.Services.AddScoped<TenantController>();
