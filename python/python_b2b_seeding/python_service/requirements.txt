@@ -1,0 +1,28 @@
+# Database seeding requirements
+bcrypt>=4.0.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# FastAPI web framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+
+# Database ORM
+sqlalchemy>=1.4.0
+
+# Database drivers (choose based on your database)
+# PostgreSQL
+psycopg2-binary>=2.9.0
+
+# MySQL (uncomment if using MySQL)
+# pymysql>=1.1.0
+# or: mysqlclient>=2.1.0
+
+# For async support
+# asyncio is built-in for Python 3.7+
+
+# Authentication & Security
+# python-jose[cryptography]>=3.3.0  # JWT tokens
+# passlib[bcrypt]>=1.7.4  # Password hashing utilities
+
