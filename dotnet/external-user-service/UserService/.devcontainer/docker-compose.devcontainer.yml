@@ -1,0 +1,28 @@
+services:
+  mysql:
+    container_name: mysql-service
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: shala_local
+      # MYSQL_ALLOW_EMPTY_PASSWORD: True
+      MYSQL_ROOT_PASSWORD: password
+
+  devcontainer:
+    container_name: shala-api-devcontainer
+    image: mcr.microsoft.com/devcontainers/dotnet:1-8.0
+    # image: image:latest
+    # build:
+    #   context: ../shala.api
+    #   dockerfile: Dockerfile
+    volumes:
+      - ../../:/workspaces:cached
+    network_mode: service:mysql
+    command: sleep infinity
+  
+volumes:
+  mysql_data:
+    driver: local

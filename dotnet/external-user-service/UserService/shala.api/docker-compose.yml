@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0           # Use the appropriate MySQL version
+    container_name: mysql_db    # Optional: name your container
+    environment:
+      MYSQL_ROOT_PASSWORD: root     # Set root password
+      MYSQL_DATABASE: shala_local             # Optional: create a default database
+      # MYSQL_USER: root                       # Optional: create a user
+      MYSQL_PASSWORD: root          # Optional: set user password
+    # ports:
+    #   - "3306:3306"            # Expose MySQL on host port 3306 (optional if only needed internally)
+    networks:
+      - my_network             # Connect to a custom network
+
+  app:
+    image: shala-api:latest               # Use the image built in the previous step
+    environment:
+      DATABASE_HOST: mysql                 # Use MySQL service name as hostname
+      DATABASE_PORT: 3306                  # MySQL default port
+      DATABASE_USER: root                  # Username as set in MySQL service
+      DATABASE_PASSWORD: root     # Password as set in MySQL service
+      DATABASE_NAME: shala_local            # Database name as set in MySQL service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql                             # Ensure MySQL starts before the app
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge                        # Default driver, use bridge network
+
+volumes:
+  mysql_data:
+    driver: local

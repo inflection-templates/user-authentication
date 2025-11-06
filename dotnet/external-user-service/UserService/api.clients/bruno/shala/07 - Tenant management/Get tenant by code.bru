@@ -1,0 +1,18 @@
+meta {
+  name: Get tenant by code
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/tenants/by-code/default
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}

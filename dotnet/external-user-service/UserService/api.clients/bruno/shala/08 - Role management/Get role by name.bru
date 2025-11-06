@@ -1,0 +1,18 @@
+meta {
+  name: Get role by name
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/roles/by-name/OrganizationAdmin
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}

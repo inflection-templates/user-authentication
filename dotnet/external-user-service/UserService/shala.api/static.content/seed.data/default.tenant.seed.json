@@ -1,0 +1,9 @@
+{
+    "Name"        : "default",
+    "Description" : "Default tenant",
+    "Code"        : "default",
+    "CountryCode" : "+91",
+    "PhoneNumber" : "0000000000",
+    "Email"       : "services@inflectionzone.com",
+    "Password"    : "Inflection@123"
+}
