@@ -3,7 +3,7 @@
         "Code": "<Client App Code>",
         "Name": "<Client App Name>",
         "Description": "<Client App Description>",
-        "Type": "Internal",
+        "Type": "<Type>",
         "RedirectUri": "<Redirect URI>",
         "LogoUrl": "<Logo URL>",
         "WebsiteUrl": "<Website URL>",
