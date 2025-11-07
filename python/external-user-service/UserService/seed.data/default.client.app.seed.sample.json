@@ -1,0 +1,11 @@
+{
+  "Code": "<Code>",
+  "Name": "<Name>",
+  "Description": "<Description>",
+  "Type": "<Type>",
+  "RedirectUri": "<Redirect URI>",
+  "LogoUrl": "<Logo URL>",
+  "WebsiteUrl": "<Website URL>",
+  "PrivacyPolicyUrl": "<Privacy Policy URL>",
+  "TermsOfServiceUrl": "<Terms of Service URL>"
+}
