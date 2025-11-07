@@ -3,14 +3,19 @@ shala.api/obj/
 
 shala.api.integration.tests/bin/
 shala.api.integration.tests/obj/
-shala.api/static.content/seed.data/system.admin.seed.json
 /.vs/shala
 .vs/ProjectEvaluation/
 
 shala.api/appsettings.local.json
 shala.api/appsettings.test.json
+shala.api/appsettings.json
 
-shala.api/static.content/
+
+shala.api/static.content/seed.data/system.admin.seed.json
+shala.api/static.content/seed.data/default.tenant.seed.json
+shala.api/static.content/seed.data/default.client.app.seed.json
+
+
 
 shala.api/storage/
 
