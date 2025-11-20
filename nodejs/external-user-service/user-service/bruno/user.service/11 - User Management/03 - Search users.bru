@@ -1,0 +1,86 @@
+meta {
+  name: Search users
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/users/search?email={{SEARCH_EMAIL}}&phone={{SEARCH_PHONE}}&userName={{SEARCH_USERNAME}}&itemsPerPage=10&pageIndex=0
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{USER_JWT}}
+  Content-Type: application/json
+}
+
+script:pre-request {
+  // Set search parameters - you can modify these based on your test data
+  bru.setEnvVar("SEARCH_EMAIL", "");
+  bru.setEnvVar("SEARCH_PHONE", "");
+  bru.setEnvVar("SEARCH_USERNAME", "");
+}
+
+tests {
+  test("Request is successful", function () {
+    expect(res.getStatus()).to.equal(200);
+    var jsonRes = res.getBody();
+    expect(jsonRes.Status).to.eql('success');
+  });
+
+  test("Search results are returned", function () {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('Users');
+    expect(jsonRes.Data.Users).to.be.an('array');
+    expect(jsonRes.Data).to.have.property('TotalCount');
+    expect(jsonRes.Data).to.have.property('RetrievedCount');
+    expect(jsonRes.Data).to.have.property('PageIndex');
+    expect(jsonRes.Data).to.have.property('ItemsPerPage');
+  });
+
+  test("Each user in results has required fields", function () {
+    var jsonRes = res.getBody();
+    var users = jsonRes.Data.Users;
+    
+    if (users.length > 0) {
+      users.forEach(function(user) {
+        expect(user).to.have.property('id');
+        expect(user).to.have.property('UserName');
+        expect(user).to.have.property('Email');
+        expect(user).to.have.property('Person');
+        expect(user).to.have.property('Tenant');
+      });
+    }
+  });
+
+  // Store first user ID for other tests if available
+  try {
+    var jsonRes = res.getBody();
+    if (jsonRes.Data.Users.length > 0) {
+      bru.setEnvVar("SEARCH_RESULT_USER_ID", jsonRes.Data.Users[0].id);
+      bru.setEnvVar("SEARCH_RESULT_USER_EMAIL", jsonRes.Data.Users[0].Email);
+    }
+  }
+  catch (error) {
+    console.log("Error storing search result data:", error.message);
+  }
+}
+
+docs {
+  Searches for users based on various criteria. This endpoint supports pagination and filtering.
+  
+  Available search parameters:
+  - email: Search by email address (partial match)
+  - phone: Search by phone number
+  - userName: Search by username (partial match)
+  - firstName: Search by first name
+  - lastName: Search by last name
+  - itemsPerPage: Number of results per page (default: 25)
+  - pageIndex: Page number (0-based, default: 0)
+  
+  Requirements:
+  - Valid JWT token in Authorization header
+  
+  Returns paginated results with user information including personal details and tenant information.
+}

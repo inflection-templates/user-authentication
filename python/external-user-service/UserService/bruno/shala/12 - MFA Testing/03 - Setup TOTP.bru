@@ -1,0 +1,52 @@
+meta {
+  name: 03 - Setup TOTP
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/mfa/setup-totp
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "user_identifier": "aditya@gmail.com"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 3: SETUP TOTP ===");
+  console.log("Setup TOTP Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ TOTP setup initiated successfully!");
+    console.log("Message:", res.body.message);
+    console.log("QR Code URL:", res.body.qr_code_url);
+    console.log("Backup Codes:", res.body.backup_codes);
+    
+    // Store backup codes for later testing
+    if (res.body.backup_codes && res.body.backup_codes.length > 0) {
+      bru.setEnvVar("BACKUP_CODES", JSON.stringify(res.body.backup_codes));
+      bru.setEnvVar("FIRST_BACKUP_CODE", res.body.backup_codes[0]);
+      console.log("💾 Backup codes stored for testing");
+      console.log("First backup code:", res.body.backup_codes[0]);
+    }
+    
+    console.log("📱 Next: Open your authenticator app and scan the QR code");
+    console.log("Next: Step 4 - Get QR Code Image (optional)");
+    console.log("Next: Step 5 - Verify TOTP Setup");
+  } else {
+    console.error("❌ TOTP setup failed:", res.body);
+    console.log("Make sure you're authenticated and MFA is not already enabled");
+  }
+}

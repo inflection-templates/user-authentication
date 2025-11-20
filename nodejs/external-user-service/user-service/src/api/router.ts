@@ -1,20 +1,15 @@
 import express from "express";
 import { logger } from "../logger/logger";
-import { register as registerRoleRoutes } from "./authorization/role/role.routes";
-import { register as registerPermissionRoutes } from "./authorization/permission/permission.routes";
-import { register as registerUserRoleRoutes } from "./authorization/user.role/user.role.routes";
-import { register as registerUserPermissionRoutes } from "./authorization/user.permission/user.permission.routes";
-import { register as registerRolePermissionRoutes } from "./authorization/role.permission/role.permission.routes";
 import { register as registerClientRoutes } from "./client.apps/client.app.routes";
-import { register as registerFileResourceRoutes } from './general/file.resource/file.resource.routes';
 import { register as registerUserDeviceDetailsRoutes } from './users/device.details/user.device.details.routes';
 import { register as registerUserRoutes } from "./users/user/user.routes";
 import { register as registerTenantRoutes } from './tenant/tenants/tenant.routes';
 import { register as registerUserMetadataRoutes } from './users/metadata/user.metadata.routes';
 import { register as registerUserAuthRoutes } from './users/auth/user.auth.routes';
+import { register as registerMfaRoutes } from './users/mfa/mfa.routes';
+import { register as registerOAuthRoutes } from './oauth/oauth.routes';
 import { wellKnownRoutes } from './wellknown/wellknown.routes';
 
-////////////////////////////////////////////////////////////////////////////////////
 
 export class Router {
 
@@ -40,15 +35,11 @@ export class Router {
                 
                 registerUserRoutes(this._app);
                 registerUserAuthRoutes(this._app);
-                registerRoleRoutes(this._app);
-                registerPermissionRoutes(this._app);
-                registerUserRoleRoutes(this._app);
-                registerUserPermissionRoutes(this._app);
-                registerRolePermissionRoutes(this._app);
+                registerMfaRoutes(this._app);
+                registerOAuthRoutes(this._app);
                 registerClientRoutes(this._app);
                 registerTenantRoutes(this._app);
                 registerUserDeviceDetailsRoutes(this._app);
-                registerFileResourceRoutes(this._app);
                 registerTenantRoutes(this._app);
                 registerUserMetadataRoutes(this._app);
                 resolve(true);

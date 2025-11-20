@@ -15,12 +15,6 @@ export const register = (app: express.Application): void => {
     router.put('/:id', auth(TenantAuth.update), controller.update);
     router.delete('/:id', auth(TenantAuth.delete), controller.delete);
 
-    router.post('/:id/promote-as-admin', auth(TenantAuth.promoteTenantUserAsAdmin), controller.promoteTenantUserAsAdmin);
-    router.post('/:id/demote-as-admin', auth(TenantAuth.demoteAdmin), controller.demoteAdmin);
-
-    router.get('/:id/stats', auth(TenantAuth.getTenantStats), controller.getTenantStats);
-    router.get('/:id/admins', auth(TenantAuth.getTenantAdmins), controller.getTenantAdmins);
-    router.get('/:id/regular-users', auth(TenantAuth.getTenantRegularUsers), controller.getTenantRegularUsers);
 
     router.get('/by-code/:code', auth(TenantAuth.getByCode), controller.getByCode);
     router.get('/:id', auth(TenantAuth.getById), controller.getById);

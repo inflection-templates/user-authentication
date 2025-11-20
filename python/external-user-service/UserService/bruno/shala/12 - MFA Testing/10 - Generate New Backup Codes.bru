@@ -1,0 +1,53 @@
+meta {
+  name: 10 - Generate New Backup Codes
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/mfa/generate-backup-codes
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "token": "{{TOTP_CODE}}"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 10: GENERATE NEW BACKUP CODES ===");
+  console.log("Generate Backup Codes Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ New Backup Codes Generated Successfully!");
+    console.log("Response:", res.body);
+    console.log("New Backup Codes:", res.body.backup_codes);
+    console.log("Message:", res.body.message);
+    
+    // Store new backup codes
+    if (res.body.backup_codes && res.body.backup_codes.length > 0) {
+      bru.setEnvVar("BACKUP_CODES", JSON.stringify(res.body.backup_codes));
+      bru.setEnvVar("FIRST_BACKUP_CODE", res.body.backup_codes[0]);
+      console.log("💾 New backup codes stored!");
+      console.log("First new backup code:", res.body.backup_codes[0]);
+    }
+    
+    console.log("⚠️ Warning: Old backup codes are now invalidated!");
+    console.log("Next: Step 11 - Test New Backup Code (optional)");
+    console.log("Next: Step 12 - Disable MFA (optional)");
+  } else {
+    console.error("❌ Failed to generate backup codes:", res.body);
+    console.log("Make sure you're using a valid 6-digit TOTP code");
+    console.log("💡 Get a fresh TOTP code from your authenticator app");
+  }
+}

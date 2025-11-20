@@ -44,45 +44,6 @@ export class TenantAuth {
         RequestType : RequestType.DeleteOne,
     };
 
-    static readonly promoteTenantUserAsAdmin: UserAuthOptions = {
-        ...DefaultUserAuthOptions,
-        Context     : `${this._baseContext}.PromoteTenantUserAsAdmin`,
-        Ownership   : ResourceOwnership.Tenant,
-        ActionScope : ActionScope.Tenant,
-        RequestType : RequestType.UpdateOne,
-    };
-
-    static readonly demoteAdmin: UserAuthOptions = {
-        ...DefaultUserAuthOptions,
-        Context     : `${this._baseContext}.DemoteAdmin`,
-        Ownership   : ResourceOwnership.Tenant,
-        ActionScope : ActionScope.Tenant,
-        RequestType : RequestType.UpdateOne,
-    };
-
-    static readonly getTenantStats: UserAuthOptions = {
-        ...DefaultUserAuthOptions,
-        Context     : `${this._baseContext}.GetTenantStats`,
-        Ownership   : ResourceOwnership.Tenant,
-        ActionScope : ActionScope.Tenant,
-        RequestType : RequestType.GetOne,
-    };
-
-    static readonly getTenantAdmins: UserAuthOptions = {
-        ...DefaultUserAuthOptions,
-        Context     : `${this._baseContext}.GetTenantAdmins`,
-        Ownership   : ResourceOwnership.Tenant,
-        ActionScope : ActionScope.Tenant,
-        RequestType : RequestType.GetMany,
-    };
-
-    static readonly getTenantRegularUsers: UserAuthOptions = {
-        ...DefaultUserAuthOptions,
-        Context     : `${this._baseContext}.GetTenantRegularUsers`,
-        Ownership   : ResourceOwnership.Tenant,
-        ActionScope : ActionScope.Tenant,
-        RequestType : RequestType.GetMany,
-    };
 
     static readonly getById: UserAuthOptions = {
         ...DefaultUserAuthOptions,

@@ -1,0 +1,46 @@
+meta {
+  name: 04 - Verify TOTP Setup
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{BASE_URL}}/users/mfa/verify-totp-setup
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{USER_JWT}}
+}
+
+body:json {
+  {
+    "token": "518466"
+  }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("TOTP enabled successfully", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('enabled');
+    expect(jsonRes.Data.enabled).to.equal(true);
+  });
+}
+
+docs {
+  # TOTP Verification
+  
+  **Instructions:**
+  1. First run "02 - Setup TOTP" to get the QR code URL
+  2. Scan the QR code with Google Authenticator or similar app
+  3. Enter the 6-digit code from your authenticator app in the "token" field above
+  4. Run this request to verify and enable TOTP
+  
+  **Note:** Replace "123456" with the actual 6-digit code from your authenticator app.
+}

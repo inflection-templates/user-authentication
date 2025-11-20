@@ -1,0 +1,45 @@
+meta {
+  name: 08 - Disable MFA
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{BASE_URL}}/users/mfa/disable
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{USER_JWT}}
+}
+
+body:json {
+  {
+    "token": "123456"
+  }
+}
+
+docs {
+  # Disable MFA
+  
+  **Instructions:**
+  1. Get the current 6-digit code from your authenticator app
+  2. Replace "123456" with the actual TOTP code
+  3. Run this request to disable MFA for your account
+  
+  **Warning:** This will disable all MFA protection on your account.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("MFA disabled successfully", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('enabled');
+    expect(jsonRes.Data.enabled).to.equal(false);
+  });
+}

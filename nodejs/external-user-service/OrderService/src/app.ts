@@ -8,7 +8,7 @@ import { Loader } from './startup/loader';
 import { Injector } from './startup/injector';
 import { errorHandlerMiddleware } from './middlewares/error.handling.middleware';
 import { Router } from './api/router';
-import { getJwtConfiguration } from './auth/jwt.configuration';
+import { getJwtConfiguration } from './auth/JwtAuthenticationConfiguration';
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -113,12 +113,18 @@ export default class Application {
 
     private initializeJwtAuthentication = async (): Promise<void> => {
         try {
-            logger.info('Initializing JWT authentication with caching...');
+            logger.info('🔐 Initializing JWT authentication with JWKS caching...');
             const jwtConfig = getJwtConfiguration();
+            
+            // Configure JWKS caching
+            jwtConfig.configureJwksCaching();
+            logger.info('✅ JWKS cache configured');
+            
+            // Start background services
             await jwtConfig.startBackgroundServices();
-            logger.info('JWT authentication services initialized');
+            logger.info('✅ JWT authentication services initialized');
         } catch (error) {
-            logger.error(`Error initializing JWT authentication: ${error.message}`);
+            logger.error(`❌ Error initializing JWT authentication: ${error.message}`);
             throw error;
         }
     };

@@ -12,8 +12,5 @@ export interface CurrentUser {
     UserName    : string;
     SessionId  ?: uuid;
     IsTestUser ?: boolean;
-    Roles       : {
-        id  : uuid;
-        Name: string;
-    }[];
+    Roles       : any[];
 }

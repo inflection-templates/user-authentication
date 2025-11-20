@@ -5,10 +5,7 @@ import { Injector } from '../../../startup/injector';
 import { TenantValidator } from './tenant.validator';
 import { ApiError } from '../../../common/api.error';
 import { uuid } from '../../../domain.types/miscellaneous/system.types';
-import { RoleService } from '../../../services/authorization/role.service';
 import { UserService } from '../../../services/users/user.service';
-import { UserRoleService } from '../../../services/authorization/user.role.service';
-import { DefaultRoleTypes } from '../../../domain.types/authorization/enums';
 import { UserCreateModel } from '../../../domain.types/users/user.types';
 import { logger } from '../../../logger/logger';
 import { EmailService } from "../../../modules/communication/email/email.service";
@@ -25,11 +22,7 @@ export class TenantController extends BaseController {
 
     _service: TenantService = Injector.Container.resolve(TenantService);
 
-    _roleService: RoleService = Injector.Container.resolve(RoleService);
-
     _userService: UserService = Injector.Container.resolve(UserService);
-
-    _userRoleService: UserRoleService = Injector.Container.resolve(UserRoleService);
 
     _validator: TenantValidator = new TenantValidator();
 
@@ -86,11 +79,6 @@ export class TenantController extends BaseController {
                 throw new ApiError(400, 'Unable to create tenant admin user.');
             }
             logger.info(`Tenant admin user created successfully. UserName: ${adminUserName}`);
-
-            const userRole = await this._userRoleService.addUserRole(user.id, role.id, tenant.id);
-            if (userRole == null) {
-                throw new ApiError(400, 'Unable to create tenant admin user role.');
-            }
             //Send email to the admin user with username and password
             await this.sendWelcomeEmail(tenant, adminUserName, adminPassword);
 
@@ -139,11 +127,8 @@ export class TenantController extends BaseController {
 
     search = async (request: express.Request, response: express.Response): Promise<void> => {
         try {
-            const currentUserRoles = request.currentUser.Roles;
-            const roleNames = currentUserRoles.map(r => r.Name);
-            if (!roleNames.includes(DefaultRoleTypes.SystemAdmin) &&
-                !roleNames.includes(DefaultRoleTypes.SystemUser)
-            ) {
+            // Simplified authorization - just check if user is authenticated
+            if (!request.currentUser) {
                 throw new ApiError(403, 'Unauthorized action!');
             }
             const filters = await this._validator.search(request);
@@ -203,105 +188,6 @@ export class TenantController extends BaseController {
         }
     };
 
-    promoteTenantUserAsAdmin = async (request: express.Request, response: express.Response): Promise<void> => {
-        try {
-            const id: uuid = await this._validator.getParamUuid(request, 'id');
-            const userId: uuid = await this._validator.getParamUuid(request, 'userId');
-            const tenant = await this._service.getById(id);
-            if (tenant == null) {
-                throw new ApiError(404, 'Tenant not found.');
-            }
-            await this.authorizeOne(request, null, tenant.id);
-            const user = await this._service.getById(userId);
-            if (user == null) {
-                throw new ApiError(404, 'User not found.');
-            }
-            const promoted = await this._service.promoteTenantUserAsAdmin(id, userId);
-            ResponseHandler.success(request, response, 'User promoted as admin to tenant successfully!', 200, {
-                Promoted : promoted,
-            });
-        }
-        catch (error) {
-            ResponseHandler.handleError(request, response, error);
-        }
-    };
-
-    demoteAdmin = async (request: express.Request, response: express.Response): Promise<void> => {
-        try {
-            const id: uuid = await this._validator.getParamUuid(request, 'id');
-            const userId: uuid = await this._validator.getParamUuid(request, 'userId');
-            const tenant = await this._service.getById(id);
-            if (tenant == null) {
-                throw new ApiError(404, 'Tenant not found.');
-            }
-            await this.authorizeOne(request, null, tenant.id);
-            const user = await this._service.getById(userId);
-            if (user == null) {
-                throw new ApiError(404, 'User not found.');
-            }
-            const demoted = await this._service.demoteAdmin(id, userId);
-            ResponseHandler.success(request, response, 'User demoted as admin from tenant successfully!', 200, {
-                Demoted : demoted,
-            });
-        }
-        catch (error) {
-            ResponseHandler.handleError(request, response, error);
-        }
-    };
-
-    getTenantStats = async (request: express.Request, response: express.Response): Promise<void> => {
-        try {
-            const id: uuid = await this._validator.getParamUuid(request, 'id');
-            const tenant = await this._service.getById(id);
-            if (tenant == null) {
-                throw new ApiError(404, 'Tenant not found.');
-            }
-            await this.authorizeOne(request, null, tenant.id);
-            const stats = await this._service.getTenantStats(id);
-            ResponseHandler.success(request, response, 'Tenant stats retrieved successfully!', 200, {
-                Stats : stats,
-            });
-        }
-        catch (error) {
-            ResponseHandler.handleError(request, response, error);
-        }
-    };
-
-    getTenantAdmins = async (request: express.Request, response: express.Response): Promise<void> => {
-        try {
-            const id: uuid = await this._validator.getParamUuid(request, 'id');
-            const tenant = await this._service.getById(id);
-            if (tenant == null) {
-                throw new ApiError(404, 'Tenant not found.');
-            }
-            await this.authorizeOne(request, null, tenant.id);
-            const admins = await this._service.getTenantAdmins(id);
-            ResponseHandler.success(request, response, 'Tenant admins retrieved successfully!', 200, {
-                Admins : admins,
-            });
-        }
-        catch (error) {
-            ResponseHandler.handleError(request, response, error);
-        }
-    };
-
-    getTenantRegularUsers = async (request: express.Request, response: express.Response): Promise<void> => {
-        try {
-            const id: uuid = await this._validator.getParamUuid(request, 'id');
-            const tenant = await this._service.getById(id);
-            if (tenant == null) {
-                throw new ApiError(404, 'Tenant not found.');
-            }
-            await this.authorizeOne(request, null, tenant.id);
-            const moderators = await this._service.getTenantRegularUsers(id);
-            ResponseHandler.success(request, response, 'Tenant moderators retrieved successfully!', 200, {
-                Moderators : moderators,
-            });
-        }
-        catch (error) {
-            ResponseHandler.handleError(request, response, error);
-        }
-    };
 
     private sendWelcomeEmail = async (tenant: TenantDto, adminUserName: string, adminPassword: string) => {
         try {

@@ -1,0 +1,48 @@
+meta {
+  name: 02 - Setup TOTP
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/users/mfa/setup-totp
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{USER_JWT}}
+}
+
+body:json {
+  {
+    "userIdentifier": "node1@gmail.com"
+  }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has TOTP setup data", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('qrCodeDataUrl');
+    expect(jsonRes.Data).to.have.property('qrCodeUrl');
+    expect(jsonRes.Data).to.have.property('backupCodes');
+    expect(jsonRes.Data).to.have.property('message');
+  });
+  
+  // Save QR code URL for manual verification
+  try {
+    var jsonRes = res.getBody();
+    if (jsonRes.Data && jsonRes.Data.qrCodeUrl) {
+      bru.setEnvVar("TOTP_QR_URL", jsonRes.Data.qrCodeUrl);
+      console.log("QR Code URL: " + jsonRes.Data.qrCodeUrl);
+      console.log("Backup Codes: " + JSON.stringify(jsonRes.Data.backupCodes));
+    }
+  } catch (error) {
+    console.log("Error saving TOTP data: " + error.message);
+  }
+}

@@ -69,7 +69,7 @@ class User(BaseModel):
     
     class Config:
         from_attributes = True
-        allow_population_by_field_name = True
+        populate_by_name = True
     
     def parse_phone_number(self, combined_phone: str):
         """Parse the combined phone number into country code and phone number"""
@@ -152,7 +152,7 @@ class UserPhoneLoginModel(BaseModel):
     remember_me: bool = False
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class UserOtpLoginModel(BaseModel):
@@ -166,6 +166,36 @@ class UserSendOtpModel(BaseModel):
     """User send OTP request model"""
     email: EmailStr
     purpose: str = "login"  # login, password_reset, verification
+
+
+class UserTotpValidationModel(BaseModel):
+    """User TOTP validation request model"""
+    user_id: str = Field(..., description="User ID")
+    session_id: str = Field(..., description="Login session ID")
+    totp_code: str = Field(..., min_length=6, max_length=6, description="6-digit TOTP code")
+
+
+class MfaRequiredResponseModel(BaseModel):
+    """Response model when MFA is required"""
+    success: bool = True
+    message: str = "MFA required"
+    httpcode: int = 200
+    requires_mfa: bool = True
+    user_id: str
+    session_id: str
+    mfa_methods: list = ["totp"]
+    
+    @classmethod
+    def create(cls, user_id: str, session_id: str, message: str = "MFA required") -> "MfaRequiredResponseModel":
+        return cls(
+            success=True,
+            message=message,
+            httpcode=200,
+            requires_mfa=True,
+            user_id=user_id,
+            session_id=session_id,
+            mfa_methods=["totp"]
+        )
 
 
 class UserResetPasswordSendLinkModel(BaseModel):
@@ -206,7 +236,7 @@ class UserRegistrationModel(BaseModel):
     tenant_id: Optional[str] = Field(None, alias="TenantId")
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
         
     def get_full_phone(self) -> Optional[str]:
         """Get full phone number combining country code and phone number"""
@@ -283,7 +313,7 @@ class UserResponseModel(BaseModel):
     
     class Config:
         from_attributes = True
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class PaginatedResponse(BaseModel):

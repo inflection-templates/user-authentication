@@ -42,6 +42,7 @@ class UserEntity(Base):
     oauth_profiles = relationship("UserOAuthProfileEntity", back_populates="user", cascade="all, delete-orphan")
     login_sessions = relationship("UserLoginSessionEntity", back_populates="user", cascade="all, delete-orphan")
     user_roles = relationship("UserRoleEntity", back_populates="user", cascade="all, delete-orphan")
+    mfa_temp_secrets = relationship("UserMfaTempSecretEntity", back_populates="user", cascade="all, delete-orphan")
 
 
 class UserAuthProfileEntity(Base):
@@ -57,6 +58,22 @@ class UserAuthProfileEntity(Base):
     failed_login_attempts = Column(Integer, nullable=False, default=0)
     locked_until = Column(DateTime, nullable=True)
     is_locked = Column(Boolean, nullable=False, default=False)
+    
+    # MFA related fields
+    mfa_enabled = Column(Boolean, nullable=False, default=False)
+    mfa_type = Column(String(50), nullable=False, default="TOTP")  # TOTP, SMS, EMAIL
+    totp_secret = Column(String(255), nullable=True)
+    totp_secret_last_rotated = Column(DateTime, nullable=True)
+    backup_codes = Column(Text, nullable=True)  # JSON array of backup codes
+    
+    # Email and phone verification
+    is_email_verified = Column(Boolean, nullable=False, default=False)
+    is_phone_verified = Column(Boolean, nullable=False, default=False)
+    
+    # OAuth related fields
+    has_signed_up_with_oauth = Column(Boolean, nullable=False, default=False)
+    oauth_provider = Column(String(50), nullable=True)
+    
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -177,3 +194,19 @@ class ApiKeyEntity(Base):
     
     # Relationships
     client_app = relationship("ClientAppEntity")
+
+
+class UserMfaTempSecretEntity(Base):
+    """User MFA temporary secret entity for TOTP setup"""
+    __tablename__ = "user_mfa_temp_secrets"
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
+    secret = Column(String(255), nullable=False)
+    secret_type = Column(String(50), nullable=False, default="TOTP")  # TOTP, SMS, EMAIL
+    expires_at = Column(DateTime, nullable=False)  # Auto-expire after 30 minutes
+    is_used = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("UserEntity", back_populates="mfa_temp_secrets")

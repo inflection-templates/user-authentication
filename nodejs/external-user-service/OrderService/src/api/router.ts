@@ -5,7 +5,8 @@
 
 import express from 'express';
 import { logger } from '../common/logger';
-import { verifyToken } from '../auth/auth.middleware';
+import { verifyToken } from '../auth/JwtAuthenticationMiddleware';
+import { getJwtConfiguration } from '../auth/JwtAuthenticationConfiguration';
 import { CustomerRoutes } from './customer/customer.routes';
 import { ProductRoutes } from './product/product.routes';
 import { OrderRoutes } from './order/order.routes';
@@ -31,6 +32,26 @@ export class Router {
                     service: 'Order Management Service',
                     version: '1.0.0'
                 });
+            });
+
+            // JWKS cache status endpoint (for monitoring)
+            this._app.get('/cache/status', (req, res) => {
+                try {
+                    const jwtConfig = getJwtConfiguration();
+                    const stats = jwtConfig.getCacheStats();
+                    res.json({
+                        success: true,
+                        data: stats,
+                        httpcode: 200,
+                        timestamp: new Date().toISOString()
+                    });
+                } catch (error: any) {
+                    res.status(500).json({
+                        success: false,
+                        message: `Error getting cache status: ${error.message}`,
+                        httpcode: 500
+                    });
+                }
             });
 
             // API routes with JWT authentication (like Python FastAPI Depends(verify_token))

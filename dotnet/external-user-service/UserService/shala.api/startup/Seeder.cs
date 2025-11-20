@@ -96,7 +96,7 @@ public static class Seeder
             var userRoleService = serviceProvider.GetRequiredService<IUserRoleService>();
             var userAuthService = serviceProvider.GetRequiredService<IUserAuthService>();
             var userAuthProfileService = serviceProvider.GetRequiredService<IUserAuthProfileService>();
-            
+
             // Ensure we have a tenant ID
             if (tenantId == null || tenantId == Guid.Empty)
             {
@@ -112,7 +112,7 @@ public static class Seeder
                     Log.Error("Could not retrieve default tenant. User will be created without tenant ID.");
                 }
             }
-            
+
             var basePath = GetSeedDataFolderPath();
             var adminSeedPath = Path.Combine(basePath, "system.admin.seed.json");
             var jsonStr = File.ReadAllText(adminSeedPath);

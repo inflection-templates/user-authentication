@@ -9,7 +9,6 @@ import { UserService } from '../../../services/users/user.service';
 import { TenantService } from '../../../services/tenant/tenant.service';
 import { Injector } from '../../../startup/injector';
 import { uuid } from '../../../domain.types/miscellaneous/system.types';
-import { RoleService } from '../../../services/authorization/role.service';
 import { UserAuthService } from '../../../services/users/user.auth.service';
 import { JwtRsaTokenService } from '../../../services/jwt.rsa.token.service';
 
@@ -24,13 +23,11 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
 
     _tenantService: TenantService = null;
 
-    _roleService: RoleService = null;
 
     constructor() {
         this._userService = Injector.Container.resolve(UserService);
         this._userAuthService = Injector.Container.resolve(UserAuthService);
         this._tenantService = Injector.Container.resolve(TenantService);
-        this._roleService = Injector.Container.resolve(RoleService);
                 this._jwtRsaService = JwtRsaTokenService.getInstance();
     }
 
@@ -46,16 +43,6 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
 
         try {
 
-            //////////////////////////////////////////////////////////////////////////////////////////
-            // Already taken care of in the auth.handler
-            // if (!request.clientAppAuth && request.alternateAuth) {
-            //     // Cuurently, this check is applicable only for the specific endpoints, where
-            //     // there is a need to allow alternate authentication mechanism.
-            //     // For example, client-app specific endpoints like renew and get API keys.
-            //     // Here we are using basic authentication (username and password) instead of JWT token.
-            //     // For all other endpoints, this check is not applicable.
-            //     return res;
-            // }
             //////////////////////////////////////////////////////////////////////////////////////////
 
             const publicAccess = request.actionScope === ActionScope.Public;
@@ -83,9 +70,9 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 return res;
             }
 
-            // synchronous verification
-            var user = await this.verifyJwtToken(token, process.env.USER_ACCESS_TOKEN_SECRET);
-            if (!user) {
+            // RSA JWT verification
+            const claims = this._jwtRsaService.verifyToken(token);
+            if (!claims) {
                 res = {
                     Result        : false,
                     Message       : 'Invalid or expired user login session.',
@@ -94,10 +81,26 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 logger.info('Invalid or expired user login session.');
                 return res;
             }
-            if (!user.SessionId) {
+            // Convert JWT claims to CurrentUser format
+            const currentUser: CurrentUser = {
+                UserId: claims.userId || claims.sub,
+                TenantId: claims.tenantId || '',
+                TenantCode: claims.tenantId || 'default',
+                TenantName: claims.tenantName || 'Default Tenant',
+                DisplayName: claims.displayName || claims.username || claims.email || 'Unknown',
+                PhoneCode: claims.phoneCode || '',
+                PhoneNumber: '', // Not available in JWT claims
+                Email: claims.email || '',
+                UserName: claims.username || '',
+                SessionId: claims.sessionId,
+                IsTestUser: false, // Default value
+                Roles: []
+            };
+
+            if (!currentUser.SessionId) {
                 const isPrivilegedAccess = request.currentClient.IsPrivileged as boolean;
                 if (isPrivilegedAccess) {
-                    request.currentUser = user as CurrentUser;
+                    request.currentUser = currentUser;
                     logger.info('Privileged access granted without session Id.');
                     return res;
                 }
@@ -111,7 +114,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 return res;
             }
 
-            var isValidUserLoginSession = await this._userAuthService.isValidUserLoginSession(user.SessionId);
+            var isValidUserLoginSession = await this._userAuthService.isValidUserLoginSession(currentUser.SessionId);
 
             if (!isValidUserLoginSession) {
                 res = {
@@ -123,7 +126,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
                 return res;
             }
 
-            request.currentUser = user as CurrentUser;
+            request.currentUser = currentUser;
             request.currentUserTenantId = request.currentUser?.TenantId;
             res = {
                 Result        : true,
@@ -162,7 +165,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
         if (!user) {
             throw ('Invalid user');
         }
-        const roles = user.Roles.map(r => ({ id: r.id, Name: r.Name }));
+        const roles: any[] = [];
         const tenant = await this._tenantService.getById(user.Tenant?.id);
         if (!tenant) {
             throw ('Invalid tenant');
@@ -201,7 +204,6 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
         var payload = {
             UserId     : currentUser.UserId,
             TenantId   : currentUser.TenantId,
-            Roles      : currentUser.Roles,
             SessionId  : currentUser.SessionId,
             IsTestUser : currentUser.IsTestUser,
         };
@@ -214,8 +216,7 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
             try {
                 // Use RSA JWT service instead of HMAC (like Python/C# implementations)
                 const sessionId = user.SessionId || 'default-session';
-                const role = user.Roles && user.Roles.length > 0 ? user.Roles[0].Name : undefined;
-                const token = this._jwtRsaService.generateToken(user, sessionId, role);
+                const token = this._jwtRsaService.generateToken(user, sessionId);
                 resolve(token);
             } catch (error) {
                 logger.error(`Error generating RSA JWT token: ${error.message}`);
@@ -245,12 +246,12 @@ export class CustomUserAuthenticator implements IUserAuthenticator {
             jwt.verify(token, secret, (err, decoded) => {
                 if (err) {
                     logger.info('Token invalid or expired');
-                    return reject(null); // Token invalid or expired
+                    return reject(new Error('Token invalid or expired'));
                 }
                 // Ensure payload is an object (JwtPayload)
                 if (typeof decoded === 'string' || !decoded) {
                     logger.info('Invalid token payload');
-                    return reject(null);
+                    return reject(new Error('Invalid token payload'));
                 }
                 resolve(decoded as JwtPayload);
             });

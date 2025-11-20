@@ -13,9 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.db_context import get_db_session
 from domain.types.user_types import (
     UserPasswordLoginModel, UserPhoneLoginModel, UserOtpLoginModel, UserSendOtpModel,
-    UserResetPasswordSendLinkModel, UserResetPasswordModel,
+    UserTotpValidationModel, UserResetPasswordSendLinkModel, UserResetPasswordModel,
     UserChangePasswordModel, UserRefreshTokenModel, UserRegistrationModel,
-    LoginResponseModel, TokenResponseModel, ApiResponse
+    LoginResponseModel, TokenResponseModel, ApiResponse, MfaRequiredResponseModel
 )
 from services.user_auth_service import UserAuthService
 from services.jwt_token_service import JwtTokenService
@@ -27,9 +27,10 @@ class AuthHandler:
         self.auth_service = auth_service
         self.jwt_service = jwt_service
 
-    async def login_with_password(self, login_data: UserPasswordLoginModel) -> LoginResponseModel:
+    async def login_with_password(self, login_data: UserPasswordLoginModel):
         """
         Authenticate user with email and password
+        Returns either LoginResponseModel or MfaRequiredResponseModel
         """
         try:
             result = await self.auth_service.authenticate_with_password(
@@ -46,7 +47,21 @@ class AuthHandler:
             
             user, session = result
             
-            # Generate tokens
+            # Check if MFA is enabled for this user
+            from services.mfa_service import MfaService
+            mfa_service = MfaService(self.auth_service.db_session)
+            mfa_status = await mfa_service.get_mfa_status(user.id)
+            
+            if mfa_status.enabled:
+                # MFA is required - return MFA required response
+                logger.info(f"User {user.email} requires MFA authentication")
+                return MfaRequiredResponseModel.create(
+                    user_id=str(user.id),
+                    session_id=str(session.session_id),
+                    message="MFA authentication required"
+                )
+            
+            # Generate tokens for successful login without MFA
             access_token = self.jwt_service.generate_token(user, session.session_id)
             refresh_token = self.jwt_service.generate_refresh_token(user, session.session_id)
             
@@ -184,6 +199,91 @@ class AuthHandler:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal server error while sending OTP"
+            )
+
+    async def validate_totp_for_login(self, totp_request: UserTotpValidationModel) -> LoginResponseModel:
+        """
+        Validate TOTP code for login and complete authentication
+        """
+        try:
+            from services.mfa_service import MfaService
+            from sqlalchemy import select
+            from database.entities.user_entities import UserEntity, UserLoginSessionEntity
+            from uuid import UUID
+            
+            # Validate TOTP using MFA service
+            mfa_service = MfaService(self.auth_service.db_session)
+            mfa_result = await mfa_service.validate_mfa(
+                UUID(totp_request.user_id),
+                totp_request.totp_code,
+                'totp'
+            )
+            
+            if not mfa_result.success:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=mfa_result.message
+                )
+            
+            # Get user by ID
+            user_result = await self.auth_service.db_session.execute(
+                select(UserEntity).where(UserEntity.id == totp_request.user_id)
+            )
+            user_entity = user_result.scalar_one_or_none()
+            
+            if not user_entity or not user_entity.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="User not found or inactive"
+                )
+            
+            # Get or create login session
+            session_result = await self.auth_service.db_session.execute(
+                select(UserLoginSessionEntity).where(
+                    UserLoginSessionEntity.session_id == UUID(totp_request.session_id)
+                )
+            )
+            session_entity = session_result.scalar_one_or_none()
+            
+            if not session_entity:
+                # Create new session if not found
+                session_entity = await self.auth_service._create_login_session(
+                    user_entity.id, 
+                    False
+                )
+            
+            # Update user last login
+            user_entity.last_login = datetime.utcnow()
+            user_entity.updated_at = datetime.utcnow()
+            
+            await self.auth_service.db_session.commit()
+            
+            # Convert to domain models
+            user = self.auth_service._map_user_entity_to_domain(user_entity)
+            session_domain = self.auth_service._map_session_entity_to_domain(session_entity)
+            
+            # Generate tokens
+            access_token = self.jwt_service.generate_token(user, session_domain.session_id)
+            refresh_token = self.jwt_service.generate_refresh_token(user, session_domain.session_id)
+            
+            logger.info(f"User {user.email} authenticated with TOTP successfully")
+            
+            return LoginResponseModel.create(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                expires_in=self.jwt_service.access_token_validity_days * 24 * 60 * 60,
+                user=user,
+                session_id=str(session_domain.session_id),
+                httpcode=200
+            )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"TOTP validation error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal server error during TOTP validation"
             )
 
     async def register_user(self, registration_data: UserRegistrationModel) -> LoginResponseModel:

@@ -11,6 +11,9 @@ import { createHash } from 'crypto';
 import { logger } from '../logger/logger';
 
 export interface JWTClaims {
+    phoneCode: null;
+    displayName: string;
+    tenantName: string;
     sub: string;
     email?: string;
     username?: string;
@@ -216,8 +219,11 @@ export class JwtRsaTokenService {
             userId: user.UserId || user.id,
             email: user.Email || user.email,
             username: user.UserName || user.username,
+            phoneCode: user.PhoneCode || user.phoneCode,
+            displayName: user.DisplayName || user.displayName,
+            tenantName: user.TenantName || user.tenantName,
             tenantId: user.TenantId || user.tenantId,
-            role: role || (user.Roles && user.Roles[0]?.Name),
+            role: role,
             sessionId: sessionId
         };
     }

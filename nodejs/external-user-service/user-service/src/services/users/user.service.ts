@@ -4,15 +4,12 @@ import { ApiError } from '../../common/api.error';
 import { Helper } from '../../common/helper';
 import { logger } from '../../logger/logger';
 import { TimeHelper } from '../../common/time.helper';
-import { IRoleRepo } from '../../database/repository.interfaces/authorization/role.repo.interface';
 import { IUserRepo } from '../../database/repository.interfaces/users/user.repo.interface';
-import { DefaultRoleTypes } from '../../domain.types/authorization/enums';
 import { UserCreateModel, UserDto, UserUniqueIdentifiers, UserUpdateModel } from '../../domain.types/users/user.types';
 import { uuid } from '../../domain.types/miscellaneous/system.types';
 import { ITenantRepo } from '../../database/repository.interfaces/tenant/tenant.repo.interface';
 import { UserSearchFilters, UserSearchResults } from '../../domain.types/users/user.types';
 import { IUserMetadataRepo } from '../../database/repository.interfaces/users/user.metadata.repo.interface';
-import { IUserRoleRepo } from '../../database/repository.interfaces/authorization/user.role.repo.interface';
 import { IUserPasswordRepo } from '../../database/repository.interfaces/users/user.password.repo.interface';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,14 +19,10 @@ export class UserService {
 
     constructor(
         @inject('IUserRepo') private _userRepo: IUserRepo,
-        @inject('IUserRoleRepo') private _userRoleRepo: IUserRoleRepo,
-        @inject('IRoleRepo') private _roleRepo: IRoleRepo,
         @inject('IUserMetadataRepo') private _userMetadataRepo: IUserMetadataRepo,
         @inject('IUserPasswordRepo') private _userPasswordRepo: IUserPasswordRepo,
         @inject('ITenantRepo') private _tenantRepo: ITenantRepo,
     ) {}
-
-    //#region Publics
 
     public create = async (model: UserCreateModel) => {
 
@@ -37,9 +30,6 @@ export class UserService {
         if (dto == null) {
             return null;
         }
-
-        // Create default user metadata
-        await this._userMetadataRepo.createDefault(dto.id);
 
         dto = await this._userRepo.getById(dto.id);
         return dto;
@@ -64,17 +54,6 @@ export class UserService {
     public getByUserName = async (userName: string): Promise<UserDto> => {
         var dto = await this._userRepo.getByUserName(userName);
         return dto;
-    };
-
-    public getUserRoles = async (userId: uuid): Promise<{ id: uuid; Name: string }[]> => {
-        var dto = await this._userRepo.getById(userId);
-        if (dto == null) {
-            throw new ApiError(404, 'User not found.');
-        }
-        return dto.Roles ? dto.Roles.map(role => ({
-            id   : role.id,
-            Name : role.Name,
-        })) : [];
     };
 
     public update = async (id: string, model: UserUpdateModel): Promise<UserDto> => {
@@ -108,23 +87,6 @@ export class UserService {
         return userName;
     };
 
-    // public updateCurrentTimezone = async () => {
-    //     try {
-    //         const users = await this._userRepo.getAllRegisteredUsers();
-    //         for await (var u of users) {
-    //             var extractedResult = await this.sanitizeTimezone(u.DefaultTimeZone);
-    //             u.CurrentTimeZone = extractedResult;
-    //             var entity: UserDomainModel = {
-    //                 CurrentTimeZone : extractedResult,
-    //                 DefaultTimeZone : extractedResult,
-    //             };
-    //             const updateUser = await this._userRepo.update(u.id, entity);
-    //         }
-    //     } catch (error) {
-    //         logger.info(`Error updating the current timezone.`);
-    //     }
-    // };
-
     public getDateInUserTimeZone = async (userId: uuid, dateStr: string, useCurrent = true) => {
         var user = await this.getById(userId);
         if (user === null) {
@@ -151,8 +113,6 @@ export class UserService {
                 return;
             }
 
-            const role = await this._roleRepo.getByName(DefaultRoleTypes.SystemAdmin);
-
             const model: UserCreateModel = {
                 TenantId    : tenant.id,
                 PhoneCode   : sysAdmin.PhoneCode,
@@ -164,8 +124,7 @@ export class UserService {
 
             const user = await this._userRepo.create(model);
             await this._userMetadataRepo.createDefault(user.id);
-            await this._userMetadataRepo.updateDisplayName(user.id, DefaultRoleTypes.SystemAdmin);
-            await this._userRoleRepo.addUserRole(user.id, role.id, tenant.id);
+            await this._userMetadataRepo.updateDisplayName(user.id, 'System Admin');
             if (sysAdmin.Password) {
                 const hashedPassword = Helper.hash(sysAdmin.Password);
                 await this._userPasswordRepo.updateCurrentUserHashedPassword(user.id, hashedPassword);
@@ -209,10 +168,6 @@ export class UserService {
         return user;
     };
 
-    //#endregion
-
-    //#region Privates
-
     private constructUserName(firstName: string, lastName: string) {
         const rand = Math.random().toString(10)
             .substring(2, 4);
@@ -236,7 +191,5 @@ export class UserService {
         const extractedString = parts.slice(0, 2).join(':');
         return extractedString;
     };
-
-    //#endregion
 
 }

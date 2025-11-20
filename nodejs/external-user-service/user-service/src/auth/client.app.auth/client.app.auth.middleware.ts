@@ -37,9 +37,6 @@ export default class ClientAppAuthMiddleware
             if (isHealthCheck) {
                 next();
             }
-            // else if (exceptionRoutes.includes(requestUrl)) {
-            //     next();
-            // }
             else if (apiKeyMissing) {
                 const message = 'Missing API key';
                 ResponseHandler.failure(request, response, message, 401);
