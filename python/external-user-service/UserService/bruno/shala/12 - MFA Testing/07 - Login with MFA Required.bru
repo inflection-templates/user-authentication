@@ -1,0 +1,60 @@
+meta {
+  name: 07 - Login with MFA Required
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "email": "{{USER_EMAIL}}",
+    "password": "{{USER_PASSWORD}}",
+    "remember_me": false
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 7: LOGIN WITH MFA REQUIRED ===");
+  console.log("Login Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ Login response received!");
+    console.log("Response:", res.body);
+    
+    // Check if MFA is required
+    if (res.body.requires_mfa) {
+      console.log("🔐 MFA is required for this user!");
+      console.log("User ID:", res.body.user_id);
+      console.log("Session ID:", res.body.session_id);
+      console.log("Available MFA Methods:", res.body.mfa_methods);
+      
+      // Store user and session IDs for TOTP validation
+      bru.setEnvVar("USER_ID", res.body.user_id);
+      bru.setEnvVar("SESSION_ID", res.body.session_id);
+      console.log("💾 User ID and Session ID stored for next step");
+      console.log("Next: Step 8 - Validate TOTP for Login");
+    } else {
+      console.log("🔓 Login successful without MFA");
+      if (res.body.data && res.body.data.token) {
+        bru.setEnvVar("USER_ACCESS_TOKEN", res.body.data.token);
+        bru.setEnvVar("USER_REFRESH_TOKEN", res.body.data.refreshToken);
+        console.log("🔑 Tokens received - MFA might not be properly enabled");
+      }
+    }
+  } else {
+    console.error("❌ Login Failed:", res.body);
+    console.log("Check your email and password credentials");
+  }
+}

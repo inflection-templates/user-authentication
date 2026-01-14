@@ -1,0 +1,13 @@
+[
+    {
+        "Code": "default",
+        "Name": "Default Internal API client",
+        "Description": "Default Internal API client",
+        "Type": "Internal",
+        "RedirectUri": "http://localhost:3000",
+        "LogoUrl": "https://shala.io/assets/img/logo.png",
+        "WebsiteUrl": "https://shala.io",
+        "PrivacyPolicyUrl": "https://shala.io/privacy",
+        "TermsOfServiceUrl": "https://shala.io/terms"
+    }
+]

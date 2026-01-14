@@ -1,0 +1,40 @@
+meta {
+  name: 01 - Generate email otp
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/auth/generate-email-otp
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: {{API_CLIENT_INTERNAL_KEY}}
+}
+
+body:json {
+  {
+    "Email": "prashantkharade3721-testing@gmail.com",
+    "TenantId": "{{TENANT_ID}}"
+  }
+}
+
+tests {
+  try {
+      var jsonRes = res.getBody();
+      bru.setEnvVar("PATIENT_USER_JWT", jsonRes.Data.AccessToken);
+  }
+  catch (error) {
+      console.log(error.message);
+  }
+  
+  // test("Request is successfull", function () {
+  //     expect(res.getStatus()).to.equal(200);
+  //     var jsonRes = res.getBody();
+  //     expect(jsonRes.Status).to.eql('success');
+  // });
+  
+}

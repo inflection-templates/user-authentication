@@ -1,0 +1,9 @@
+{
+    "Name"        : "<Name>",
+    "Description" : "<Description>",
+    "Code"        : "<Code>",
+    "CountryCode" : "<Country Code>",
+    "PhoneNumber" : "<Phone Number>",
+    "Email"       : "<Email>",
+    "Password"    : "<Password>"
+}

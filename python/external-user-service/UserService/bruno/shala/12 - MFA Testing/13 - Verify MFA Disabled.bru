@@ -1,0 +1,39 @@
+meta {
+  name: 13 - Verify MFA Disabled
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/mfa/status
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 13: VERIFY MFA DISABLED ===");
+  console.log("MFA Status Response:", status);
+  
+  if (status == 200) {
+    console.log("✅ MFA Status verified!");
+    console.log("MFA Enabled:", res.body.enabled);
+    console.log("Available Methods:", res.body.methods);
+    console.log("Backup Codes Remaining:", res.body.backup_codes_remaining);
+    
+    if (!res.body.enabled) {
+      console.log("🔓 MFA is successfully disabled!");
+      console.log("✅ Test sequence completed successfully!");
+    } else {
+      console.log("⚠️ MFA is still enabled - check Step 12");
+    }
+  } else {
+    console.error("❌ Failed to verify MFA status:", res.body);
+  }
+}

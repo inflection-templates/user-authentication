@@ -1,0 +1,30 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using shala.api.database.interfaces.models;
+
+namespace shala.api.database.relational.efcore;
+
+public class RoleDbModel : IDbModel
+{
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid? Id { get; set; }
+
+    [Required]
+    public string Name { get; set; } = null!;
+
+    public string Description { get; set; } = null!;
+
+    public string? Code { get; set; } = null!;
+
+    public Guid? TenantId { get; set; }
+
+    public bool IsDefaultRole { get; set; } = false;
+
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public DateTime CreatedAt { get; set; }
+
+    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    public DateTime UpdatedAt { get; set; }
+
+}

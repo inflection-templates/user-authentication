@@ -1,0 +1,33 @@
+meta {
+  name: User login - MFA Enabled
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/login-with-password
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "countryCode": "+91",
+    "phoneNumber": "9370122237",
+    "password": "password123"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log(status)
+  if (status == 200) {
+    bru.setEnvVar("USER_ID", res.body.data.userId);
+    bru.setEnvVar("SESSION_ID", res.body.data.sessionId);
+  }
+  
+}

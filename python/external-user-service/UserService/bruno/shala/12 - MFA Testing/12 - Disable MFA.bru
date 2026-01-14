@@ -1,0 +1,44 @@
+meta {
+  name: 12 - Disable MFA
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/mfa/disable
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "token": "{{TOTP_CODE}}"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 12: DISABLE MFA ===");
+  console.log("Disable MFA Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ MFA Disabled Successfully!");
+    console.log("Response:", res.body);
+    console.log("MFA Enabled:", res.body.enabled);
+    console.log("Message:", res.body.message);
+    console.log("🔓 MFA is now disabled for this user");
+    console.log("⚠️ Warning: Future logins will not require TOTP");
+    console.log("Next: Step 13 - Verify MFA Disabled");
+  } else {
+    console.error("❌ Failed to disable MFA:", res.body);
+    console.log("Make sure you're using a valid 6-digit TOTP code");
+    console.log("💡 Get a fresh TOTP code from your authenticator app");
+  }
+}

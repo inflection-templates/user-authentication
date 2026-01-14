@@ -1,0 +1,9 @@
+{
+    "Name"        : "<Tenant Name>",
+    "Description" : "<Tenant Description>",
+    "Code"        : "<Tenant Code>",
+    "CountryCode" : "<Country Code>",
+    "PhoneNumber" : "<Phone Number>",
+    "Email"       : "<Email>",
+    "Password"    : "<Password>"
+}

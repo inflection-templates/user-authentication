@@ -1,0 +1,39 @@
+meta {
+  name: 02 - Check MFA Status
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/mfa/status
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 2: CHECK MFA STATUS ===");
+  console.log("MFA Status Response:", status);
+  
+  if (status == 200) {
+    console.log("✅ MFA Status retrieved successfully!");
+    console.log("MFA Enabled:", res.body.enabled);
+    console.log("Available Methods:", res.body.methods);
+    console.log("Backup Codes Remaining:", res.body.backup_codes_remaining);
+    
+    if (res.body.enabled) {
+      console.log("🔐 MFA is already enabled for this user");
+      console.log("Next: Step 3 - Test Login with MFA");
+    } else {
+      console.log("🔓 MFA is not enabled yet");
+      console.log("Next: Step 3 - Setup TOTP");
+    }
+  } else {
+    console.error("❌ Failed to get MFA status:", res.body);
+    console.log("Make sure you're authenticated (check USER_ACCESS_TOKEN)");
+  }
+}

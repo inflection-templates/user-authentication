@@ -1,0 +1,31 @@
+meta {
+  name: Upload file
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/file-resources/upload
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:multipart-form {
+  File: @file(C:\Users\Admin\Desktop\logo.png)
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log(status)
+  if (status == 201) {
+     bru.setEnvVar("FILE_RESOURCE_ID", res.body.data.id);
+  }
+  
+}

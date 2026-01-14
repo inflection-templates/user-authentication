@@ -1,0 +1,5 @@
+/seed.data/default.tenant.seed.json
+/seed.data/default.client.app.seed.json
+/seed.data/system.admin.seed.json
+
+/.env

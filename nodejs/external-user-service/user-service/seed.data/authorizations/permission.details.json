@@ -1,0 +1,312 @@
+[
+    {
+        "name": "ClientApp.Create",
+        "description": "Create new client applications in the system",
+        "module": "ClientApp"
+    },
+    {
+        "name": "ClientApp.Delete",
+        "description": "Delete existing client applications from the system",
+        "module": "ClientApp"
+    },
+    {
+        "name": "ClientApp.GetById",
+        "description": "Retrieve a specific client application by its unique identifier",
+        "module": "ClientApp"
+    },
+    {
+        "name": "ClientApp.GetCurrentApiKey",
+        "description": "Retrieve the current API key for a client application",
+        "module": "ClientApp"
+    },
+    {
+        "name": "ClientApp.RenewApiKey",
+        "description": "Renew the API key for a client application",
+        "module": "ClientApp"
+    },
+    {
+        "name": "ClientApp.Search",
+        "description": "Search and filter through client applications",
+        "module": "ClientApp"
+    },
+    {
+        "name": "ClientApp.Update",
+        "description": "Update existing client applications",
+        "module": "ClientApp"
+    },
+    {
+        "name": "Tenant.Tenants.Create",
+        "description": "Create new tenant organizations in the system",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.Delete",
+        "description": "Delete existing tenant organizations from the system",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.DemoteAdmin",
+        "description": "Remove administrative privileges from tenant users",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.GetByCode",
+        "description": "Retrieve tenant organizations by their unique code",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.GetById",
+        "description": "Retrieve a specific tenant organization by its unique identifier",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.GetTenantAdmins",
+        "description": "Retrieve list of administrators for a tenant organization",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.GetTenantRegularUsers",
+        "description": "Retrieve list of regular users for a tenant organization",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.GetTenantStats",
+        "description": "Retrieve statistics and analytics for a tenant organization",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.PromoteTenantUserAsAdmin",
+        "description": "Grant administrative privileges to tenant users",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.Search",
+        "description": "Search and filter through tenant organizations",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "Tenant.Tenants.Update",
+        "description": "Update existing tenant organization information",
+        "module": "Tenant.Tenants"
+    },
+    {
+        "name": "User.Auth.ChangePassword",
+        "description": "Change user password after authentication",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.GenerateEmailOtp",
+        "description": "Generate one-time password for email-based authentication",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.GeneratePhoneOtp",
+        "description": "Generate one-time password for phone-based authentication",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.LoginWithEmailOtp",
+        "description": "Authenticate users using email and one-time password",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.LoginWithEmailPassword",
+        "description": "Authenticate users using email and password",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.LoginWithOtp",
+        "description": "Authenticate users using one-time password",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.LoginWithPhoneOtp",
+        "description": "Authenticate users using phone and one-time password",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.LoginWithPhonePassword",
+        "description": "Authenticate users using phone and password",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.LoginWithUsernamePassword",
+        "description": "Authenticate users using username and password",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.Logout",
+        "description": "Log out users and invalidate their session",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.ResetPasswordByOtp",
+        "description": "Reset user password using one-time password verification",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.ResetPasswordByToken",
+        "description": "Reset user password using secure token verification",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.RotateUserAccessToken",
+        "description": "Generate new access tokens for authenticated users",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.SendResetPasswordByEmailLink",
+        "description": "Send password reset link via email",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.SendResetPasswordByEmailOtp",
+        "description": "Send password reset one-time password via email",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.Auth.SendResetPasswordByPhoneOtp",
+        "description": "Send password reset one-time password via phone",
+        "module": "User.Auth"
+    },
+    {
+        "name": "User.DeviceDetails.Create",
+        "description": "Register new device details for users",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.DeviceDetails.Delete",
+        "description": "Remove device details from user accounts",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.DeviceDetails.GetById",
+        "description": "Retrieve specific device details by unique identifier",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.DeviceDetails.GetByUserId",
+        "description": "Retrieve all device details for a specific user",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.DeviceDetails.Search",
+        "description": "Search and filter through user device details",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.DeviceDetails.SendNotificationWithTopic",
+        "description": "Send targeted notifications to devices using topic-based messaging",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.DeviceDetails.SendTestNotification",
+        "description": "Send test notifications to user devices for testing purposes",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.DeviceDetails.Update",
+        "description": "Update existing device details for users",
+        "module": "User.DeviceDetails"
+    },
+    {
+        "name": "User.Metadata.Delete",
+        "description": "Delete user metadata and preferences",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.GetCurrentTimeZone",
+        "description": "Retrieve the current timezone setting for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.GetDefaultTimeZone",
+        "description": "Retrieve the default timezone setting for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.GetDisplayName",
+        "description": "Retrieve the display name for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.GetLastLogin",
+        "description": "Retrieve the last login timestamp for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.GetPreferredLanguage",
+        "description": "Retrieve the preferred language setting for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.GetUserMetadata",
+        "description": "Retrieve comprehensive metadata information for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.GetUserSettings",
+        "description": "Retrieve user settings and preferences",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.IsTestUser",
+        "description": "Check if a user account is marked as a test user",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.Update",
+        "description": "Update user metadata and preferences",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.UpdateCurrentTimeZone",
+        "description": "Update the current timezone setting for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.UpdateDefaultTimeZone",
+        "description": "Update the default timezone setting for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.UpdatePreferredLanguage",
+        "description": "Update the preferred language setting for users",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Metadata.UpdateUserSettings",
+        "description": "Update user settings and preferences",
+        "module": "User.Metadata"
+    },
+    {
+        "name": "User.Users.Create",
+        "description": "Create new user accounts in the system",
+        "module": "User.Users"
+    },
+    {
+        "name": "User.Users.Delete",
+        "description": "Delete existing user accounts from the system",
+        "module": "User.Users"
+    },
+    {
+        "name": "User.Users.DeleteProfileImage",
+        "description": "Remove profile images from user accounts",
+        "module": "User.Users"
+    },
+    {
+        "name": "User.Users.GetById",
+        "description": "Retrieve a specific user account by its unique identifier",
+        "module": "User.Users"
+    },
+    {
+        "name": "User.Users.Search",
+        "description": "Search and filter through user accounts",
+        "module": "User.Users"
+    },
+    {
+        "name": "User.Users.Update",
+        "description": "Update existing user account information",
+        "module": "User.Users"
+    }
+]

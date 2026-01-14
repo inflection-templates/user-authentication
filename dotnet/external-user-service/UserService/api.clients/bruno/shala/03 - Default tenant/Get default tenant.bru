@@ -1,0 +1,23 @@
+meta {
+  name: Get default tenant
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/tenants/by-code/default
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{ADMIN_ACCESS_TOKEN}}
+}
+
+script:post-response {
+  bru.setEnvVar("DEFAULT_TENANT_ID", res.body.data.id);
+  bru.setEnvVar("TENANT_ID", res.body.data.id);
+}

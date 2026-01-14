@@ -1,0 +1,46 @@
+meta {
+  name: JWKS Health Check
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/.well-known/jwks/health
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("JWKS Health Check Status:", status);
+  
+  if (status == 200) {
+    console.log("JWKS Health Response:", res.body);
+    
+    // Extract health information
+    if (res.body.Status === "Healthy") {
+      console.log("✅ JWKS Service is Healthy");
+      console.log("Key Type:", res.body.KeyType);
+      console.log("Key ID:", res.body.KeyId);
+      console.log("Algorithm:", res.body.Algorithm);
+      console.log("Timestamp:", res.body.Timestamp);
+      
+      // Store health status in environment
+      bru.setEnvVar("JWKS_HEALTH_STATUS", "Healthy");
+      bru.setEnvVar("JWKS_HEALTH_KEY_ID", res.body.KeyId);
+      bru.setEnvVar("JWKS_HEALTH_ALGORITHM", res.body.Algorithm);
+      bru.setEnvVar("JWKS_HEALTH_TIMESTAMP", res.body.Timestamp);
+    } else {
+      console.log("❌ JWKS Service is Unhealthy");
+      console.log("Error:", res.body.Error);
+      bru.setEnvVar("JWKS_HEALTH_STATUS", "Unhealthy");
+      bru.setEnvVar("JWKS_HEALTH_ERROR", res.body.Error || "Unknown error");
+    }
+  } else {
+    console.error("JWKS Health Check Failed:", res.body);
+    bru.setEnvVar("JWKS_HEALTH_STATUS", "Error");
+  }
+}

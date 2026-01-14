@@ -1,0 +1,56 @@
+meta {
+  name: 07 - Generate New Backup Codes
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{BASE_URL}}/users/mfa/generate-backup-codes
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{USER_JWT}}
+}
+
+body:json {
+  {
+    "token": "123456"
+  }
+}
+
+docs {
+  # Generate New Backup Codes
+  
+  **Instructions:**
+  1. Get the current 6-digit code from your authenticator app
+  2. Replace "123456" with the actual TOTP code
+  3. Run this request to generate new backup codes
+  
+  **Security:** This will invalidate all existing backup codes and generate new ones.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("New backup codes generated", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('backupCodes');
+    expect(jsonRes.Data.backupCodes).to.be.an('array');
+    expect(jsonRes.Data.backupCodes.length).to.be.greaterThan(0);
+  });
+  
+  // Log the new backup codes
+  try {
+    var jsonRes = res.getBody();
+    if (jsonRes.Data && jsonRes.Data.backupCodes) {
+      console.log("New Backup Codes: " + JSON.stringify(jsonRes.Data.backupCodes, null, 2));
+    }
+  } catch (error) {
+    console.log("Error logging backup codes: " + error.message);
+  }
+}

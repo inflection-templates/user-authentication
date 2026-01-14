@@ -1,0 +1,36 @@
+meta {
+  name: Get Customer by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/customers/:customerId
+}
+
+params:path {
+  customerId: {{customer_id}}
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+vars {
+  customer_id: customer-uuid-here
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+tests {
+  test("Get customer by ID returns success", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().success).to.equal(true);
+    expect(res.getBody().customer).to.be.an('object');
+    expect(res.getBody().customer.id).to.exist;
+  });
+}

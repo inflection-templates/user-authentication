@@ -1,0 +1,36 @@
+meta {
+  name: Twitter OAuth Callback
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/auth/oauth/twitter/callback?code={{twitter_code}}&state={{twitter_state}}
+  body: none
+  auth: none
+}
+
+params:query {
+  code: {{twitter_code}}
+  state: {{twitter_state}}
+}
+
+vars:pre-request {
+  twitter_code: test_authorization_code_twitter
+  twitter_state: random_state_value_twitter
+}
+
+assert {
+  res.status: 200
+  res.body.Success: true
+}
+
+tests {
+  test("Should authenticate user with Twitter OAuth", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.Success).to.be.true;
+    expect(res.body.Data).to.have.property('AccessToken');
+    expect(res.body.Data).to.have.property('User');
+    expect(res.body.Data).to.have.property('SessionId');
+  });
+}

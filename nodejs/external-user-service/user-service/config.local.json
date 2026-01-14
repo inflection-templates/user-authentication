@@ -1,0 +1,46 @@
+{
+    "SystemIdentifier": "User Service",
+    "BaseUrl": "http://localhost:3000",
+    "Logger": "Winston",
+    "Auth" : {
+        "Authentication": "Custom",
+        "Authorization": "Custom",
+        "UseRefreshToken": true,
+        "AccessTokenExpiresInSeconds": 108000,
+        "RefreshTokenExpiresInSeconds": 2592000,
+        "PasswordExpirationDurationDays": 180,
+        "OtpValidityInMinutes": 5,
+        "SendPasswordBySms": true,
+        "SendPasswordByEmail": true
+    },
+    "Analytics" : {
+        "Enabled": false,
+        "Endpoint": "http://localhost:2400/api/v1"
+    },
+    "Database" : {
+        "Type": "SQL",
+        "ORM": "Sequelize"
+    },
+    "FileStorage" : {
+        "Provider": "Custom"
+    },
+    "Communication" : {
+        "SMS": {
+            "Provider": "Twilio"
+        },
+        "Email": {
+            "Provider": "Mock"
+        },
+        "InAppNotifications": {
+            "Provider": "Mock"
+        }
+    },
+    "TemporaryFolders": {
+        "Upload": "./tmp/resources/uploads/",
+        "Download": "./tmp/resources/downloads/",
+        "CleanupFolderBeforeMinutes": 10
+    },
+    "MaxUploadFileSize": 104857600,
+    "InternalClientAppManagement": true,
+    "ClientAppAuth": false
+}

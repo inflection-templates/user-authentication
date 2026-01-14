@@ -1,0 +1,43 @@
+meta {
+  name: 05 - Verify TOTP Setup
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/mfa/verify-totp-setup
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "token": "683242"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 5: VERIFY TOTP SETUP ===");
+  console.log("Verify TOTP Setup Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ TOTP Setup Verified Successfully!");
+    console.log("Response:", res.body);
+    console.log("MFA Enabled:", res.body.enabled);
+    console.log("Message:", res.body.message);
+    console.log("🔐 MFA is now active for this user!");
+    console.log("Next: Step 6 - Check MFA Status (to confirm)");
+  } else {
+    console.error("❌ TOTP Setup Verification Failed:", res.body);
+    console.log("Make sure you're using a valid 6-digit TOTP code from your authenticator app");
+    console.log("💡 TOTP codes change every 30 seconds - try getting a fresh code");
+  }
+}

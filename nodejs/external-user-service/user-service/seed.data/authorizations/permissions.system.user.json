@@ -1,0 +1,312 @@
+[
+    {
+        "name": "ClientApp.Create",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "ClientApp.Delete",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "ClientApp.GetById",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "ClientApp.GetCurrentApiKey",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "ClientApp.RenewApiKey",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "ClientApp.Search",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "ClientApp.Update",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "Tenant.Tenants.Create",
+        "enabled": false,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.Delete",
+        "enabled": false,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.DemoteAdmin",
+        "enabled": false,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.GetByCode",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.GetById",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.GetTenantAdmins",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.GetTenantRegularUsers",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.GetTenantStats",
+        "enabled": false,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.PromoteTenantUserAsAdmin",
+        "enabled": false,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.Search",
+        "enabled": false,
+        "scope": "Public"
+    },
+    {
+        "name": "Tenant.Tenants.Update",
+        "enabled": false,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.ChangePassword",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.GenerateEmailOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.GeneratePhoneOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.LoginWithEmailOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.LoginWithEmailPassword",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.LoginWithOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.LoginWithPhoneOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.LoginWithPhonePassword",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.LoginWithUsernamePassword",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.Logout",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.ResetPasswordByOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.ResetPasswordByToken",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.RotateUserAccessToken",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.SendResetPasswordByEmailLink",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.SendResetPasswordByEmailOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.Auth.SendResetPasswordByPhoneOtp",
+        "enabled": true,
+        "scope": "Public"
+    },
+    {
+        "name": "User.DeviceDetails.Create",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.DeviceDetails.Delete",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.DeviceDetails.GetById",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.DeviceDetails.GetByUserId",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.DeviceDetails.Search",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.DeviceDetails.SendNotificationWithTopic",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.DeviceDetails.SendTestNotification",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.DeviceDetails.Update",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.Delete",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.GetCurrentTimeZone",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.GetDefaultTimeZone",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.GetDisplayName",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.GetLastLogin",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.GetPreferredLanguage",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.GetUserMetadata",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.GetUserSettings",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.IsTestUser",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.Update",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.UpdateCurrentTimeZone",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.UpdateDefaultTimeZone",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.UpdatePreferredLanguage",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Metadata.UpdateUserSettings",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Users.Create",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Users.Delete",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Users.DeleteProfileImage",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Users.GetById",
+        "enabled": true,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Users.Search",
+        "enabled": false,
+        "scope": "Owner"
+    },
+    {
+        "name": "User.Users.Update",
+        "enabled": true,
+        "scope": "Owner"
+    }
+]

@@ -1,0 +1,26 @@
+meta {
+  name: 03 - Get QR Code Image
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/users/mfa/qr-code
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{USER_JWT}}
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is PNG image", function() {
+    var contentType = res.getHeader('Content-Type');
+    expect(contentType).to.include('image/png');
+  });
+}

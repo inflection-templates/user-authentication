@@ -1,0 +1,42 @@
+meta {
+  name: Login to User Service
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{user_service_url}}/api/v1/users/auth/login-with-password
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "Email": "admin@demo.com",
+    "Password": "Test@123"
+  }
+}
+
+vars:post-response {
+  jwt_token: res.body.Data.AccessToken
+}
+
+assert {
+  res.status: eq 200
+  res.body.Status: eq "Success"
+  res.body.Data.AccessToken: isDefined
+}
+
+script:post-response {
+  // Automatically set the JWT token for use in OrderService requests
+  bru.setEnvVar("jwt_token", res.body.Data.AccessToken);
+  
+  console.log("✅ Login successful!");
+  console.log("🔑 JWT Token set automatically for OrderService requests");
+  console.log("📋 Token preview:", res.body.Data.AccessToken.substring(0, 50) + "...");
+  console.log("🔐 Token now includes RSA signature with 'kid' for JWKS validation");
+}

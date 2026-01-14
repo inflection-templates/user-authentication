@@ -1,0 +1,9 @@
+[
+    {
+        "ClientCode": "<Client Code>",
+        "ClientName": "<Client Name>",
+        "Email": "<Email>",
+        "Password": "<Password>",
+        "ApiKey": "<API Key>"
+    }
+]

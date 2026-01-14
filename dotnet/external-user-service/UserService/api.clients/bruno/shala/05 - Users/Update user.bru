@@ -1,0 +1,26 @@
+meta {
+  name: Update user
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/users/08dde6e3-9c4f-436c-80e4-fed12e810325
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "firstName": "addittya",
+    "lastName": "hagawaane",
+    "email": "aadditya@gmail.com",
+    "countryCode": "+91",
+    "phoneNumber": "9876543211"
+  }
+}

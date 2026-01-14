@@ -1,0 +1,16 @@
+meta {
+  name: Get user roles
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user-roles/{{USER_ID}}
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}

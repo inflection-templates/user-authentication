@@ -1,0 +1,44 @@
+meta {
+  name: 09 - Test Backup Code
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/mfa/validate
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  content-type: application/json
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "token": "{{BACKUP_CODE}}",
+    "method": "backup"
+  }
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 9: TEST BACKUP CODE ===");
+  console.log("Backup Code Validation Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ Backup Code Validation Successful!");
+    console.log("Response:", res.body);
+    console.log("Method used:", res.body.method);
+    console.log("Message:", res.body.message);
+    console.log("⚠️ Note: This backup code is now invalidated and cannot be used again");
+    console.log("Next: Step 10 - Generate New Backup Codes");
+  } else {
+    console.error("❌ Backup Code Validation Failed:", res.body);
+    console.log("Make sure you're using a valid backup code that hasn't been used before");
+    console.log("💡 Use FIRST_BACKUP_CODE from environment or get a fresh code from Step 3");
+  }
+}

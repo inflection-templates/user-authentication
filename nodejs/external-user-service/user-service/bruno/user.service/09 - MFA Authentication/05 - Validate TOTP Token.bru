@@ -1,0 +1,50 @@
+meta {
+  name: 05 - Validate TOTP Token
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{BASE_URL}}/users/mfa/validate
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{USER_JWT}}
+}
+
+body:json {
+  {
+    "token": "736337",
+    "method": "totp"
+  }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("TOTP validation successful", function() {
+    var jsonRes = res.getBody();
+    expect(jsonRes.Data).to.have.property('valid');
+    expect(jsonRes.Data.valid).to.equal(true);
+    expect(jsonRes.Data.method).to.equal('totp');
+  });
+}
+
+docs {
+  # TOTP Token Validation
+  
+  **Instructions:**
+  1. Ensure TOTP is already enabled (run "04 - Verify TOTP Setup" first)
+  2. Get the current 6-digit code from your authenticator app
+  3. Replace "123456" with the actual code
+  4. Run this request to validate the TOTP token
+  
+  **Methods:**
+  - "totp" - Validate time-based OTP token
+  - "backup" - Validate backup recovery code
+}

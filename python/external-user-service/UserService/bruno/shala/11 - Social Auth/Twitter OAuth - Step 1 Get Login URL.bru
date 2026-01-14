@@ -1,0 +1,72 @@
+meta {
+  name: Twitter OAuth - Step 1 Get Login URL
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/oauth/twitter/login
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has authorization URL", function() {
+    expect(res.getBody()).to.have.property('data');
+    expect(res.getBody().data).to.have.property('authorization_url');
+    expect(res.getBody().data.authorization_url).to.be.a('string');
+  });
+  
+  test("Authorization URL contains Twitter", function() {
+    expect(res.getBody().data.authorization_url).to.include('twitter.com');
+  });
+  
+  test("Response contains PKCE code_verifier", function() {
+    expect(res.getBody().data).to.have.property('code_verifier');
+    expect(res.getBody().data.code_verifier).to.be.a('string');
+    expect(res.getBody().data.code_verifier.length).to.be.greaterThan(32);
+  });
+  
+  test("Response contains state parameter", function() {
+    expect(res.getBody().data).to.have.property('state');
+    expect(res.getBody().data.state).to.be.a('string');
+  });
+  
+  test("Authorization URL contains PKCE parameters", function() {
+    const authUrl = res.getBody().data.authorization_url;
+    expect(authUrl).to.include('code_challenge=');
+    expect(authUrl).to.include('code_challenge_method=S256');
+  });
+  
+  test("Log the authorization URL for manual testing", function() {
+    const authUrl = res.getBody().data.authorization_url;
+    const codeVerifier = res.getBody().data.code_verifier;
+    const state = res.getBody().data.state;
+    
+    console.log("🐦 Twitter/X Authorization URL (OAuth 2.0 with PKCE):");
+    console.log(authUrl);
+    console.log("");
+    console.log("🔐 PKCE Code Verifier (save this for callback test):");
+    console.log(codeVerifier);
+    console.log("");
+    console.log("🔑 State Parameter (save this for callback test):");
+    console.log(state);
+    console.log("");
+    console.log("📝 Instructions:");
+    console.log("1. Copy the authorization URL above");
+    console.log("2. Open it in your browser");
+    console.log("3. Sign in with your Twitter/X account");
+    console.log("4. Authorize the application");
+    console.log("5. You'll be redirected to http://localhost:5000 with a 'code' parameter");
+    console.log("6. Copy the 'code' value from the URL");
+    console.log("7. Use the code in Step 2 test");
+  });
+}

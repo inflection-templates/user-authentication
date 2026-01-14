@@ -1,0 +1,34 @@
+meta {
+  name: 04 - Get QR Code Image
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/mfa/qr-code
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 4: GET QR CODE IMAGE ===");
+  console.log("QR Code Status:", status);
+  
+  if (status == 200) {
+    console.log("✅ QR Code image received successfully!");
+    console.log("Content-Type:", res.headers["content-type"]);
+    console.log("Content-Length:", res.headers["content-length"]);
+    console.log("📱 Save this image and scan it with your authenticator app");
+    console.log("Next: Step 5 - Verify TOTP Setup");
+  } else {
+    console.error("❌ Failed to get QR Code:", res.body);
+    console.log("Make sure TOTP setup was completed in Step 3");
+  }
+}

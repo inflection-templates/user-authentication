@@ -1,0 +1,30 @@
+meta {
+  name: Delete Order
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{base_url}}/api/orders/:orderId
+}
+
+params:path {
+  orderId: {{order_id}}
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+assert {
+  res.status: eq 200
+  res.body.success: eq true
+}
+
+tests {
+  test("Delete order returns success", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().success).to.equal(true);
+  });
+}

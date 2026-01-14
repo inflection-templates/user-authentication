@@ -1,0 +1,39 @@
+meta {
+  name: 06 - Confirm MFA Enabled
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/users/mfa/status
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{API_KEY}}
+  x-api-secret: {{API_SECRET}}
+  Authorization: Bearer {{USER_ACCESS_TOKEN}}
+}
+
+script:post-response {
+  let status = res.getStatus();
+  console.log("=== STEP 6: CONFIRM MFA ENABLED ===");
+  console.log("MFA Status Response:", status);
+  
+  if (status == 200) {
+    console.log("✅ MFA Status confirmed!");
+    console.log("MFA Enabled:", res.body.enabled);
+    console.log("Available Methods:", res.body.methods);
+    console.log("Backup Codes Remaining:", res.body.backup_codes_remaining);
+    
+    if (res.body.enabled) {
+      console.log("🔐 MFA is successfully enabled!");
+      console.log("Next: Step 7 - Test Login with MFA Required");
+    } else {
+      console.log("⚠️ MFA is still not enabled - check Step 5");
+    }
+  } else {
+    console.error("❌ Failed to confirm MFA status:", res.body);
+  }
+}

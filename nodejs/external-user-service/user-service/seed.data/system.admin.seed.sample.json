@@ -1,0 +1,9 @@
+{
+    "FirstName": "<First Name>",
+    "PhoneNumber": "<Phone Number>",
+    "Email": "<Email>",
+    "UserName": "<User Name>",
+    "Password": "<Password>",
+    "DefaultTimeZone": "<Default Time Zone>",
+    "CurrentTimeZone": "<Current Time Zone>"
+}

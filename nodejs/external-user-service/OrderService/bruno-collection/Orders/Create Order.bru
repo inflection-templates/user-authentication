@@ -1,0 +1,58 @@
+meta {
+  name: Create Order
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/orders
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "customer_id": "{{customer_id}}",
+    "notes": "Test order from Bruno API collection",
+    "shipping_address": "123 Test St, Test City, TC 12345",
+    "order_items": [
+      {
+        "product_id": 1,
+        "quantity": 2
+      },
+      {
+        "product_id": 2,
+        "quantity": 1
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.success: eq true
+}
+
+tests {
+  test("Create order returns success", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().success).to.equal(true);
+    expect(res.getBody().order).to.be.an('object');
+    expect(res.getBody().order.id).to.exist;
+    expect(res.getBody().order.order_number).to.exist;
+    expect(res.getBody().order.status).to.equal("Pending");
+    expect(res.getBody().order.order_items).to.be.an('array');
+    expect(res.getBody().order.order_items.length).to.equal(2);
+    expect(res.getBody().order.total_amount).to.be.a('number');
+  });
+  
+  test("Store order ID for future requests", function() {
+    if (res.getStatus() === 201) {
+      bru.setVar("order_id", res.getBody().order.id);
+    }
+  });
+}
